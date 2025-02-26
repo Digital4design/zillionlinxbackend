@@ -1,0 +1,211 @@
+<?php
+
+namespace App\Http\Controllers\Api\User;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Spatie\Browsershot\Browsershot;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Bookmark;
+use App\Models\UserBookmark;
+use Exception;
+
+class BookmarkController extends Controller
+{
+    //
+
+    public function addBookmark(Request $request)
+    {
+        // Validate the request
+        $request->validate([
+            'url' => 'required|url',
+            'title' => 'required|string',
+            'category_id' => 'required|exists:categories,id',
+            'sub_category_id' => 'nullable|exists:categories,id',
+            'addTo' => 'nullable|string',
+        ]);
+
+        try {
+
+            $existingBookmark = Bookmark::where('website_url', $request->url)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if ($existingBookmark) {
+            return response()->json([
+                'error' => 'You have already bookmarked this URL.',
+                'message' => 'Duplicate entry: The bookmark already exists.',
+            ], 409);
+        }
+            $fileName = $request->title . time() . '.png';
+            $filePath = storage_path("app/public/{$fileName}");
+            Browsershot::url($request->url)
+                ->save($filePath);
+            $bookmark = Bookmark::create([
+                'title' => $request->title,
+                'user_id' => Auth::id(),
+                'website_url' => $request->url,
+                'icon_path' => "storage/{$fileName}",
+            ]);
+            UserBookmark::create([
+                'bookmark_id' => $bookmark->id,
+                'user_id' => Auth::id(),
+                'category_id' => $request->category_id,
+                'sub_category_id' => $request->sub_category_id,
+                'add_to' => $request->add_to,
+            ]);
+
+            return response()->json([
+                'message' => 'Bookmark added successfully!',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Screenshot failed: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getBookmarks(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'sub_category_id' => 'nullable|exists:categories,id',
+        ]);
+
+        try {
+            $query = UserBookmark::with('bookmark')->where('category_id', $request->category_id);
+
+            if ($request->filled('sub_category_id')) {
+                $query->where('sub_category_id', $request->sub_category_id);
+            }
+
+            $bookmarks = $query->get();
+
+            // Extract only the bookmark data
+            $bookmarkData = $bookmarks->pluck('bookmark')->filter();
+
+            if ($bookmarkData->isEmpty()) {
+                return response()->json([
+                    'message' => 'No bookmarks found for the given category or subcategory.',
+                    'bookmarks' => [],
+                ], 200);
+            }
+
+            return response()->json([
+                'message' => 'Bookmarks retrieved successfully!',
+                'bookmarks' => $bookmarkData->values(),
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to fetch bookmarks: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function topLinks(Request $request)
+    {
+        try {
+            $topLinks = UserBookmark::where('add_to', 'top_link')
+                ->orderBy('position', 'asc') // Order by position
+                ->with('bookmark') // Load related bookmark data
+                ->get()
+                ->pluck('bookmark'); // Extract only the bookmark objects
+    
+            if ($topLinks->isEmpty()) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'No bookmarks found',
+                    'data' => []
+                ], 404);
+            }
+    
+            return response()->json([
+                'status' => 200,
+                'message' => 'Bookmarks retrieved successfully',
+                'data' => $topLinks
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    public function removeTopLink(Request $request, $id)
+    {
+        try {
+            $topLink = Bookmark::find($id);
+
+            if (!$topLink) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Top link not found'
+                ], 404);
+            }
+
+            $topLink->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Top link removed successfully'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function pinTopLink(Request $request, $id)
+    {
+        try {
+            $topLink = UserBookmark::find($id);
+
+            if (!$topLink) {
+                return response()->json(['status' => 404, 'message' => 'Top link not found'], 404);
+            }
+
+            $topLink->pinned = !$topLink->pinned;
+            $topLink->save();
+
+            return response()->json([
+                'status' => 200,
+                'message' => $topLink->pinned ? 'Top link pinned' : 'Top link unpinned',
+                'data' => $topLink
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function reorderTopLinks(Request $request)
+    {
+        try {
+            $order = $request->input('order'); // Array of IDs in new order
+
+            if (!$order || !is_array($order)) {
+                return response()->json(['status' => 400, 'message' => 'Invalid order data'], 400);
+            }
+
+            foreach ($order as $index => $id) {
+                UserBookmark::where('id', $id)->update(['position' => $index + 1]);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Top links reordered successfully'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+}
