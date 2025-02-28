@@ -21,9 +21,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bookmarks', [BookmarkController::class, 'getBookmarks']); 
     Route::get('/top-links', [BookmarkController::class, 'topLinks']);
    
-    Route::delete('/bookmark/{id}', [BookmarkController::class, 'removeBookmark']);
-    Route::post('/bookmark/{id}/pin', [BookmarkController::class, 'pinBookmark']);
-    Route::post('/bookmark/reorder', [BookmarkController::class, 'reorderBookmark']);
+    Route::delete('/top-links/{id}', [BookmarkController::class, 'removeTopLink']);
+    Route::post('/top-links/{id}/pin', [BookmarkController::class, 'pinTopLink']);
+    Route::post('/bookmarks/reorder', [BookmarkController::class, 'reorderTopLinks']);
 
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);

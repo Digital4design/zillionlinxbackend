@@ -40,7 +40,10 @@ class BookmarkController extends Controller
             $fileName = $request->title . time() . '.png';
             $filePath = storage_path("app/public/{$fileName}");
             Browsershot::url($request->url)
+            // ->setOption('executablePath', '/var/www/.cache/puppeteer/chrome/linux-133.0.6943.126/chrome-linux64/chrome')
+            ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->save($filePath);
+                
             $bookmark = Bookmark::create([
                 'title' => $request->title,
                 'user_id' => Auth::id(),
@@ -129,7 +132,7 @@ class BookmarkController extends Controller
         }
     }
     
-    public function removeTopLink(Request $request, $id)
+    public function removeBookmark(Request $request, $id)
     {
         try {
             $topLink = Bookmark::find($id);
@@ -156,7 +159,7 @@ class BookmarkController extends Controller
         }
     }
 
-    public function pinTopLink(Request $request, $id)
+    public function pinBookmark(Request $request, $id)
     {
         try {
             $topLink = UserBookmark::find($id);
@@ -182,7 +185,7 @@ class BookmarkController extends Controller
         }
     }
 
-    public function reorderTopLinks(Request $request)
+    public function reorderBookmark(Request $request)
     {
         try {
             $order = $request->input('order'); // Array of IDs in new order
