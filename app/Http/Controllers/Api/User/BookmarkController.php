@@ -12,8 +12,7 @@ use Exception;
 
 class BookmarkController extends Controller
 {
-    //
-
+   
     public function addBookmark(Request $request)
     {
         // Validate the request
@@ -28,20 +27,20 @@ class BookmarkController extends Controller
         try {
 
             $existingBookmark = Bookmark::where('website_url', $request->url)
-            ->where('user_id', Auth::id())
-            ->first();
+                ->where('user_id', Auth::id())
+                ->first();
 
-        if ($existingBookmark) {
-            return response()->json([
-                'error' => 'You have already bookmarked this URL.',
-                'message' => 'Duplicate entry: The bookmark already exists.',
-            ], 409);
-        }
+            if ($existingBookmark) {
+                return response()->json([
+                    'error' => 'You have already bookmarked this URL.',
+                    'message' => 'Duplicate entry: The bookmark already exists.',
+                ], 409);
+            }
             $fileName = $request->title . time() . '.png';
             $filePath = storage_path("app/public/{$fileName}");
             Browsershot::url($request->url)
-            // ->setOption('executablePath', '/var/www/.cache/puppeteer/chrome/linux-133.0.6943.126/chrome-linux64/chrome')
-            ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
+                // ->setOption('executablePath', '/var/www/.cache/puppeteer/chrome/linux-133.0.6943.126/chrome-linux64/chrome')
+                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->save($filePath);
 
             $bookmark = Bookmark::create([
@@ -68,73 +67,104 @@ class BookmarkController extends Controller
 
     public function getBookmarks(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'sub_category_id' => 'nullable|exists:categories,id',
         ]);
 
         try {
-            $query = UserBookmark::with('bookmark')->where('category_id', $request->category_id);
+            $userId = auth()->id(); // Get authenticated user ID
 
-            if ($request->filled('sub_category_id')) {
-                $query->where('sub_category_id', $request->sub_category_id);
-            }
-
-            $bookmarks = $query->get();
-
-            // Extract only the bookmark data
-            $bookmarkData = $bookmarks->pluck('bookmark')->filter();
-
-            if ($bookmarkData->isEmpty()) {
-                return response()->json([
-                    'message' => 'No bookmarks found for the given category or subcategory.',
-                    'bookmarks' => [],
-                ], 200);
-            }
+            $bookmarks = UserBookmark::with('bookmark')
+                ->where('user_id', $userId)
+                ->where('category_id', $validated['category_id'])
+                ->when(!empty($validated['sub_category_id']), function ($query) use ($validated) {
+                    $query->where('sub_category_id', $validated['sub_category_id']);
+                })
+                ->orderByDesc('pinned') // Show pinned bookmarks first
+                ->orderBy('position', 'asc') // Then order by position
+                ->get()
+                ->map(function ($userBookmark) {
+                    return [
+                        'id'             => $userBookmark->id,
+                        'bookmark_id'    => $userBookmark->bookmark_id,
+                        'user_id'        => $userBookmark->user_id,
+                        'category_id'    => $userBookmark->category_id,
+                        'sub_category_id' => $userBookmark->sub_category_id,
+                        'add_to'         => $userBookmark->add_to,
+                        'pinned'         => $userBookmark->pinned,
+                        'position'       => $userBookmark->position,
+                        'created_at'     => $userBookmark->created_at,
+                        'updated_at'     => $userBookmark->updated_at,
+                        'website_url'    => $userBookmark->bookmark->website_url ?? null,
+                        'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
+                    ];
+                });
 
             return response()->json([
-                'message' => 'Bookmarks retrieved successfully!',
-                'bookmarks' => $bookmarkData->values(),
+                'message'   => $bookmarks->isNotEmpty() ? 'Bookmarks retrieved successfully!' : 'No bookmarks found.',
+                'bookmarks' => $bookmarks,
             ], 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to fetch bookmarks: ' . $e->getMessage()], 500);
+            return response()->json([
+                'error' => 'Failed to fetch bookmarks: ' . $e->getMessage(),
+            ], 500);
         }
     }
 
     public function topLinks(Request $request)
     {
         try {
-            $topLinks = UserBookmark::where('add_to', 'top_link')
-                ->orderBy('position', 'asc') // Order by position
-                ->with('bookmark') // Load related bookmark data
+            $userId = auth()->id(); // Get authenticated user ID
+
+            $topLinks = UserBookmark::with('bookmark')
+                ->where('user_id', $userId)
+                ->where('add_to', 'top_link')
+                ->orderByDesc('pinned') // Show pinned bookmarks first
+                ->orderBy('position', 'asc') // Then order by position
                 ->get()
-                ->pluck('bookmark'); // Extract only the bookmark objects
-    
+                ->map(function ($userBookmark) {
+                    return [
+                        'id'             => $userBookmark->id,
+                        'bookmark_id'    => $userBookmark->bookmark_id,
+                        'user_id'        => $userBookmark->user_id,
+                        'category_id'    => $userBookmark->category_id,
+                        'sub_category_id' => $userBookmark->sub_category_id,
+                        'add_to'         => $userBookmark->add_to,
+                        'pinned'         => $userBookmark->pinned,
+                        'position'       => $userBookmark->position,
+                        'created_at'     => $userBookmark->created_at,
+                        'updated_at'     => $userBookmark->updated_at,
+                        'website_url'    => $userBookmark->bookmark->website_url ?? null,
+                        'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
+                    ];
+                });
+
             if ($topLinks->isEmpty()) {
                 return response()->json([
-                    'status' => 404,
+                    'status'  => 404,
                     'message' => 'No bookmarks found',
-                    'data' => []
+                    'data'    => [],
                 ], 404);
             }
-    
+
             return response()->json([
-                'status' => 200,
+                'status'  => 200,
                 'message' => 'Bookmarks retrieved successfully',
-                'data' => $topLinks
+                'data'    => $topLinks,
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'status' => 500,
-                'error' => 'Something went wrong',
-                'message' => $e->getMessage()
+                'status'  => 500,
+                'error'   => 'Something went wrong',
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
-    
+
     public function removeBookmark(Request $request, $id)
     {
-        
+
         try {
             $topLink = UserBookmark::find($id);
 
@@ -210,6 +240,4 @@ class BookmarkController extends Controller
             ], 500);
         }
     }
-    
-    
 }
