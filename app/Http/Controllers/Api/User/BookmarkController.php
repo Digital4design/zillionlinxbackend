@@ -134,6 +134,7 @@ class BookmarkController extends Controller
     
     public function removeBookmark(Request $request, $id)
     {
+        
         try {
             $topLink = UserBookmark::find($id);
 
@@ -144,7 +145,7 @@ class BookmarkController extends Controller
                 ], 404);
             }
             $topLink->delete();
-            
+
             return response()->json([
                 'status' => 200,
                 'message' => 'Top link removed successfully'
