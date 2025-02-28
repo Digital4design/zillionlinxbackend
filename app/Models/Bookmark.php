@@ -13,6 +13,9 @@ class Bookmark extends Model
         'user_id',
         'website_url',
         'icon_path',
+        'pinned',
+        'position'
+
     ];
     public function userBookmarks()
     {
