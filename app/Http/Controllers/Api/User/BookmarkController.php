@@ -13,6 +13,8 @@ use Exception;
 class BookmarkController extends Controller
 {
    
+
+    
     public function addBookmark(Request $request)
     {
         // Validate the request
