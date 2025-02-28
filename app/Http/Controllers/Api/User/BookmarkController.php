@@ -43,7 +43,7 @@ class BookmarkController extends Controller
             // ->setOption('executablePath', '/var/www/.cache/puppeteer/chrome/linux-133.0.6943.126/chrome-linux64/chrome')
             ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->save($filePath);
-                
+
             $bookmark = Bookmark::create([
                 'title' => $request->title,
                 'user_id' => Auth::id(),
@@ -135,7 +135,7 @@ class BookmarkController extends Controller
     public function removeBookmark(Request $request, $id)
     {
         try {
-            $topLink = Bookmark::find($id);
+            $topLink = UserBookmark::find($id);
 
             if (!$topLink) {
                 return response()->json([
