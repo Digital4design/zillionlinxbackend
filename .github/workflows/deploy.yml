@@ -1,15 +1,11 @@
 name: Deploy
 
-# Trigger the workflow on push and
-# pull request events on the master branch
 on:
   push:
     branches: ["master"]
   pull_request:
     branches: ["master"]
 
-# Authenticate to the the server via ssh
-# and run our deployment script
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -21,5 +17,9 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: "cd /var/www/html/zillionlinx-backend && ./.scripts/deploy.sh"
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            cd /var/www/html/zillionlinxbackend
+            git pull origin master
+            php artisan migrate --force
+            php artisan config:clear
