@@ -143,9 +143,8 @@ class BookmarkController extends Controller
                     'message' => 'Top link not found'
                 ], 404);
             }
-
             $topLink->delete();
-
+            
             return response()->json([
                 'status' => 200,
                 'message' => 'Top link removed successfully'
