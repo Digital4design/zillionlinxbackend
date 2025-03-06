@@ -59,6 +59,8 @@ class AuthController extends Controller
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
                 'email' => $validated['email'],
+                'country' => $validated['country'],
+                'terms_condition' => $validated['terms_condition'],
                 // 'display_name' => $validated['display_name'],
                 'password' => Hash::make($validated['password']),
                 'email_verified_at' => now(),
@@ -76,26 +78,26 @@ class AuthController extends Controller
             return error($ex->getMessage());
         }
     }
+
     public function forgotPassword(Request $request)
     {
         $request->validate([
-            'email' => 'required|email'
+            'email' => 'required|email|exists:users,email'
         ]);
 
-        // Check if email exists in the users table
+        // Get the user
         $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return response()->json(['message' => 'This email is not registered.'], 404);
-        }
 
         // Generate a secure token
-        $token = Str::random(60);
+        $token = Str::random(64); // More secure
 
-        // Store reset token in the database
-        DB::table('password_resets')->updateOrInsert(
-            ['email' => $request->email],
-            ['token' => $token, 'created_at' => Carbon::now()]
-        );
+        // Store reset token in the database (ensure old tokens are deleted first)
+        DB::table('password_resets')->where('email', $request->email)->delete();
+        DB::table('password_resets')->insert([
+            'email' => $request->email,
+            'token' => Hash::make($token), // Secure the token
+            'created_at' => Carbon::now(),
+        ]);
 
         // Generate frontend reset password link
         $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
@@ -106,10 +108,7 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Reset link sent to your email.'], 200);
     }
-
-    /**
-     * Step 2: Reset Password
-     */
+    
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -119,12 +118,9 @@ class AuthController extends Controller
         ]);
 
         // Find token in database
-        $resetData = DB::table('password_resets')->where([
-            'email' => $request->email,
-            'token' => $request->token,
-        ])->first();
+        $resetData = DB::table('password_resets')->where('email', $request->email)->first();
 
-        if (!$resetData) {
+        if (!$resetData || !Hash::check($request->token, $resetData->token)) {
             return response()->json(['message' => 'Invalid token or email.'], 400);
         }
 
@@ -138,8 +134,7 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Password reset successfully.'], 200);
     }
-
-      /**
+    /**
      * Send a test email
      */
     public function sendTestEmail()
@@ -147,8 +142,8 @@ class AuthController extends Controller
         // $message = "yessssss";
         Mail::raw('This is a test email', function ($message) {
             $message->to('kartik.d4d@gmail.com')
-                    ->subject('Test Email')
-                    ->from('info@pmtool.digital4design.com');
+                ->subject('Test Email')
+                ->from('info@pmtool.digital4design.com');
         });
 
         return response()->json(['message' => 'Test email sent successfully!']);
