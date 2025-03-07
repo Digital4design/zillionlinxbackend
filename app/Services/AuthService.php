@@ -18,7 +18,11 @@ class AuthService
             }
             
             $token = $user->createToken('auth_token')->plainTextToken;
-            $data = ["name"=>$user->first_name." ".$user->last_name];
+            $data = ["name"=>$user->first_name." ".$user->last_name,
+           'role' => 'user',
+           'email' => $user->email,
+        ];
+            
 
             return success("Login successful", ['token' => $token, 'user' => $data]);
         }

@@ -52,10 +52,9 @@ class MailNotify extends Mailable
         return [];
     }
     public function build()
-    {
-        return $this->subject('Mail Notify')
-        ->from('sendingemail@gmail.com')
-        ->view('mail');
-                    // Assuming your email view file is named 'mail_notify.blade.php'
-    }
+{
+    return $this->from('info@pmtool.digital4design.com', 'Your App Name')
+                ->subject('Test Email')
+                ->view('emails.test');
+}
 }

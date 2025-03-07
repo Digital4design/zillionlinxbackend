@@ -26,6 +26,34 @@ class AuthController extends Controller
     {
         $this->authService = $authService;
     }
+
+    public function adminLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|min:6'
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password) || $user->role_id != 1) {
+            return response()->json(['message' => 'Invalid admin credentials'], 401);
+        }
+
+        $token = $user->createToken('admin_token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Admin login successful',
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->first_name . ' ' . $user->last_name,
+                'email' => $user->email,
+                'role' => 'admin'
+            ]
+        ], 200);
+    }
+
     public function login(LoginRequest $request)
     {
         $type = $request->input('type');
@@ -134,9 +162,7 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Password reset successfully.'], 200);
     }
-    /**
-     * Send a test email
-     */
+   
     public function sendTestEmail()
     {
         // $message = "yessssss";

@@ -7,12 +7,22 @@ use App\Http\Controllers\Api\User\BookmarkController;
 use App\Http\Controllers\Api\User\CategoryController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MailNotify;
+use Illuminate\Support\Facades\Log;
 
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::get('/send-test-email', function () {
+    try {
+        Mail::to('kartik.d4d@gmail.com')->send(new MailNotify());
+        return response()->json(['message' => 'Email sent successfully.']);
+    } catch (\Exception $e) {
+        Log::error('Mail Error: ' . $e->getMessage());
+        return response()->json(['message' => 'Mail sending failed.', 'error' => $e->getMessage()], 500);
+    }
+});
 
 Route::middleware('auth:sanctum')->group(function () {
 
@@ -31,10 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Test Email Route (only authenticated users)
-    Route::get('/send-test-email', function () {
-        Mail::to('kartik.d4d@gmail.com')->send(new MailNotify());
-        return response()->json(['message' => 'Email sent successfully.']);
-    });
+   
 });
 
 require __DIR__ . '/admin.php';

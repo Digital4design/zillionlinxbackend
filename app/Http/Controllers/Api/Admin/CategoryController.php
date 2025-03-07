@@ -8,9 +8,43 @@ use App\Models\Category;
 
 class CategoryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Category::all());
+        try {
+            $parentId = $request->query('parent_id');
+    
+            if ($parentId) {
+                $categories = Category::where('parent_id', $parentId)->get();
+                if ($categories->isEmpty()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No subcategories found for this parent_id.'
+                    ], 404);
+                }
+            } else {
+                $categories = Category::whereNull('parent_id')->with('subcategories')->get();
+    
+                if ($categories->isEmpty()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No categories found.'
+                    ], 404);
+                }
+                
+            }
+    
+            return response()->json([
+                'success' => true,
+                'data' => $categories
+            ], 200);
+    
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong!',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     // Store a new category

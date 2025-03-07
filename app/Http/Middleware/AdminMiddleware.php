@@ -24,7 +24,7 @@ class AdminMiddleware
         }
 
         // Check if user is an admin (role = 1)
-        if (Auth::user()->role !== 1) {
+        if (Auth::user()->role == 1) {
             Log::warning('Unauthorized access - User does not have admin role.', ['role' => Auth::user()->role]);
             return response()->json([
                 
