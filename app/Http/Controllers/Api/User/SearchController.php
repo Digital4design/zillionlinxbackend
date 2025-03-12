@@ -13,6 +13,7 @@ class SearchController extends Controller
 
     /*
     * Date: 11-mar-25
+    * Last Updated: 12-mar-25
     * Search for bookmarks based on title.
     *
     * This method allows searching bookmarks based on the following parameters:
@@ -32,13 +33,15 @@ class SearchController extends Controller
 
         $bookmarks = $query->select('website_url', 'icon_path')->get();
 
-        // searching in google search function
+        // searching 
         $googleResults = [];
         $wikimediaResults = [];
+        $ebayResults = [];
 
         if ($request->has('title')) {
             $googleResults = $this->searchGoogle($request->title);
             $wikimediaResults = $this->searchWikimedia($request->title);
+            $ebayResults = $this->searchEbay($request->title);
         }
 
         // Return a response with both the bookmarks and Google search results
@@ -48,15 +51,16 @@ class SearchController extends Controller
                 'bookmarks' => $bookmarks,
                 'google_search_results' => $googleResults,
                 'wikimedia_search_results' => $wikimediaResults,
+                'ebay_search_results' => $ebayResults,
             ],
         ]);
     }
 
     /*
     * Date: 11-mar-25
-    * Search for bookmarks based on title.
+    * Search for data based on title.
     *
-    * This method allows searching bookmarks from Google search api based on the following parameters:
+    * This method allows searching data from Google search api based on the following parameters:
     * - title
     *
     * @param \Illuminate\Http\Request $request
@@ -107,9 +111,9 @@ class SearchController extends Controller
 
     /*
     * Date: 11-mar-25
-    * Search for bookmarks based on title.
+    * Search for data based on title.
     *
-    * This method allows searching bookmarks from Wikimedia api based on the following parameters:
+    * This method allows searching data from Wikimedia api based on the following parameters:
     * - title
     *
     * @param \Illuminate\Http\Request $request
@@ -153,6 +157,59 @@ class SearchController extends Controller
                 'status' => 500,
                 'message' => $e->getMessage()
             ]);
+        }
+    }
+
+    /*
+    * Date: 12-mar-25
+    * Search Product based on title in Ebay.
+    *
+    * This method allows searching Product from Ebay api based on the following parameters:
+    * - title
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    private function searchEbay($title)
+    {
+        $client = new Client();
+        $encodedTitle = urlencode($title);
+
+        $ebayAppId = 'SachinMi-Zillionl-SBX-e68e0d05d-3408f0ad';
+
+        try {
+            //for sandbox
+            $response = $client->get('https://svcs.sandbox.ebay.com/services/search/FindingService/v1', [
+                //for production    $response = $client->get('https://svcs.ebay.com/services/search/FindingService/v1', [
+                'query' => [
+                    'OPERATION-NAME' => 'findItemsByKeywords',
+                    'SERVICE-VERSION' => '1.0.0',
+                    'SECURITY-APPNAME' => $ebayAppId,
+                    'RESPONSE-DATA-FORMAT' => 'JSON',
+                    'REST-PAYLOAD' => '',
+                    'keywords' => $encodedTitle,
+                    'paginationInput.entriesPerPage' => 5,
+                ],
+            ]);
+
+            $ebayData = json_decode($response->getBody()->getContents(), true);
+
+            $results = [];
+            if (isset($ebayData['findItemsByKeywordsResponse'][0]['searchResult'][0]['item'])) {
+                foreach ($ebayData['findItemsByKeywordsResponse'][0]['searchResult'][0]['item'] as $item) {
+                    $results[] = [
+                        'title' => $item['title'][0] ?? '',
+                        'link' => $item['viewItemURL'][0] ?? '',
+                        'price' => $item['sellingStatus'][0]['currentPrice'][0]['__value__'] ?? 'N/A',
+                        'currency' => $item['sellingStatus'][0]['currentPrice'][0]['@currencyId'] ?? '',
+                        'image' => $item['galleryURL'][0] ?? '',
+                    ];
+                }
+            }
+
+            return $results;
+        } catch (\Exception $e) {
+            return [];
         }
     }
 }
