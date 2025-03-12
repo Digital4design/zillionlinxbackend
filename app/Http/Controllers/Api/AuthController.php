@@ -87,18 +87,19 @@ class AuthController extends Controller
         }
         return $response;
     }
+
     public function register(RegisterRequest $request)
     {
-
         try {
             $validated = $request->validated();
+
             // Create a new user
             $data = User::create([
                 'first_name' => $validated['first_name'],
                 'last_name' => $validated['last_name'],
                 'email' => $validated['email'],
-                'country' => $validated['country'],
-                'terms_condition' => $validated['terms_condition'],
+                'country' => $request->input('country'),
+                'terms_condition' => $request->input('terms_condition'),
                 // 'display_name' => $validated['display_name'],
                 'password' => Hash::make($validated['password']),
                 'email_verified_at' => now(),
