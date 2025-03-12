@@ -9,7 +9,27 @@ use App\Http\Controllers\Api\User\SearchController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MailNotify;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Artisan;
 
+Route::post('/clear-cache', function () {
+    try {
+        // Execute cache clearing commands
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
+        Artisan::call('route:clear');
+        Artisan::call('view:clear');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cache cleared successfully!'
+        ], 200);
+    } catch (\Exception $ex) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to clear cache: ' . $ex->getMessage()
+        ], 500);
+    }
+});
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register']);
@@ -44,5 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Test Email Route (only authenticated users)
 
 });
+
+
 
 require __DIR__ . '/admin.php';
