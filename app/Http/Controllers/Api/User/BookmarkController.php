@@ -46,7 +46,8 @@ class BookmarkController extends Controller
                 'title' => $request->title,
                 'user_id' => Auth::id(),
                 'website_url' => $request->url,
-                'icon_path' => "storage/{$fileName}",
+                // 'icon_path' => "storage/{$fileName}",
+                'icon_path' => "{$fileName}",
             ]);
             UserBookmark::create([
                 'bookmark_id' => $bookmark->id,
@@ -72,7 +73,7 @@ class BookmarkController extends Controller
         ]);
 
         try {
-            $userId = auth()->id(); // Get authenticated user ID
+            $userId = Auth::id(); // Get authenticated user ID
 
             $bookmarks = UserBookmark::with('bookmark')
                 ->where('user_id', $userId)
@@ -96,7 +97,7 @@ class BookmarkController extends Controller
                         'created_at'     => $userBookmark->created_at,
                         'updated_at'     => $userBookmark->updated_at,
                         'website_url'    => $userBookmark->bookmark->website_url ?? null,
-                        'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
+                        'icon_path'      => asset('storage/' . $userBookmark->bookmark->icon_path ?? null),
                     ];
                 });
 
@@ -114,7 +115,7 @@ class BookmarkController extends Controller
     public function topLinks(Request $request)
     {
         try {
-            $userId = auth()->id(); // Get authenticated user ID
+            $userId = auth::id(); // Get authenticated user ID
 
             $topLinks = UserBookmark::with('bookmark')
                 ->where('user_id', $userId)
@@ -135,7 +136,8 @@ class BookmarkController extends Controller
                         'created_at'     => $userBookmark->created_at,
                         'updated_at'     => $userBookmark->updated_at,
                         'website_url'    => $userBookmark->bookmark->website_url ?? null,
-                        'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
+                        // 'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
+                        'icon_path'      => asset('storage/' . $userBookmark->bookmark->icon_path ?? null),
                     ];
                 });
 
