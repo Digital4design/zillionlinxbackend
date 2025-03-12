@@ -42,7 +42,7 @@ class AuthController extends Controller
 
         $token = $user->createToken('admin_token')->plainTextToken;
         if ($user) {
-            $role = $user->role_id === 1 ? 'admin' : 'user'; 
+            $role = $user->role_id === 1 ? 'admin' : 'user';
 
             $user->role = $role;
             return success("Admin login successful", ['token' => $token, 'user' => $user]);
