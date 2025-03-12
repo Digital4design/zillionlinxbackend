@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\User\BookmarkController;
 use App\Http\Controllers\Api\User\CategoryController;
+use App\Http\Controllers\Api\User\SearchController;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\MailNotify;
 use Illuminate\Support\Facades\Log;
@@ -28,20 +29,20 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Bookmark routes
     Route::post('/add-bookmark', [BookmarkController::class, 'addBookmark']);
-    Route::get('/bookmarks', [BookmarkController::class, 'getBookmarks']); 
+    Route::get('/bookmarks', [BookmarkController::class, 'getBookmarks']);
     Route::get('/top-links', [BookmarkController::class, 'topLinks']);
-   
+
     Route::delete('/bookmark/{id}', [BookmarkController::class, 'removeBookmark']);
     Route::post('/bookmark/{id}/pin', [BookmarkController::class, 'pinBookmark']);
     Route::post('/bookmark/reorder', [BookmarkController::class, 'reorderBookmark']);
 
     Route::get('/categories', [CategoryController::class, 'index']);
     Route::post('/categories', [CategoryController::class, 'store']);
-   
 
+    Route::post('/search', [SearchController::class, 'search']);
 
     // Test Email Route (only authenticated users)
-   
+
 });
 
 require __DIR__ . '/admin.php';

@@ -41,17 +41,26 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('admin_token')->plainTextToken;
+        if ($user) {
+            $role = $user->role_id === 1 ? 'admin' : 'user';
 
-        return response()->json([
-            'message' => 'Admin login successful',
-            'token' => $token,
-            'user' => [
-                'id' => $user->id,
-                'name' => $user->first_name . ' ' . $user->last_name,
-                'email' => $user->email,
-                'role' => 'admin'
-            ]
-        ], 200);
+            $user->role = $role;
+            return success("Admin login successful", ['token' => $token, 'user' => $user]);
+        }
+
+        // return success("Admin login successful", ['token' => $token, 'user' => $user]);
+        // return response()->json([
+        //     'message' => 'Admin login successful',
+        //     'token' => $token,
+        //     'user' => [
+        //         'id' => $user->id,
+        //         'name' => $user->first_name . ' ' . $user->last_name,
+        //         'email' => $user->email,
+        //         'role' => 'admin'
+        //     ]
+        // ], 200);
+
+
     }
 
     public function login(LoginRequest $request)
@@ -80,6 +89,7 @@ class AuthController extends Controller
     }
     public function register(RegisterRequest $request)
     {
+
         try {
             $validated = $request->validated();
             // Create a new user
@@ -136,7 +146,7 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Reset link sent to your email.'], 200);
     }
-    
+
     public function resetPassword(Request $request)
     {
         $request->validate([
@@ -162,7 +172,7 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Password reset successfully.'], 200);
     }
-   
+
     public function sendTestEmail()
     {
         // $message = "yessssss";
