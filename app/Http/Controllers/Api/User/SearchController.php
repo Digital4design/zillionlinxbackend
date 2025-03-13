@@ -44,7 +44,7 @@ class SearchController extends Controller
             $wikimediaResults = $this->searchWikimedia($request->title);
             $ebayResults = $this->searchEbay($request->title);
             $youtubeResults = $this->searchYouTube($request->title);
-            $amazonResults = $this->searchAmazon($request->title);
+            $amazonStaticLink = $this->searchAmazon($request->title);
             $wikiStaticLink = "https://en.wikipedia.org/wiki/Special:Search?search=" . urlencode($request->title);
             $youtubeStaticLink = "https://www.youtube.com/results?search_query=" . urlencode($request->title);
         }
@@ -58,7 +58,7 @@ class SearchController extends Controller
                 'wikimedia_search_results' => $wikimediaResults,
                 'ebay_search_results' => $ebayResults,
                 'youtube_search_results' => $youtubeResults,
-                'amazon_search_results' => $amazonResults,
+                'amazonStaticLink' => $amazonStaticLink,
                 'wikiStaticLink' => $wikiStaticLink,
                 'youtubeStaticLink' => $youtubeStaticLink,
             ],
