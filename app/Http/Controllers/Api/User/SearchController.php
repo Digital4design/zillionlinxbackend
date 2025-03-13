@@ -13,7 +13,7 @@ class SearchController extends Controller
 
     /*
     * Date: 11-mar-25
-    * Last Updated: 12-mar-25
+    * Last Updated: 13-mar-25
     * Search for bookmarks based on title.
     *
     * This method allows searching bookmarks based on the following parameters:
@@ -24,7 +24,6 @@ class SearchController extends Controller
     */
     public function search(Request $request)
     {
-
         $query = Bookmark::query();
 
         if ($request->has('title')) {
@@ -33,18 +32,22 @@ class SearchController extends Controller
 
         $bookmarks = $query->select('website_url', 'icon_path')->get();
 
-        // searching 
+        //call functions
         $googleResults = [];
         $wikimediaResults = [];
         $ebayResults = [];
+        $youtubeResults = [];
+        $amazonResults = [];
 
         if ($request->has('title')) {
             $googleResults = $this->searchGoogle($request->title);
             $wikimediaResults = $this->searchWikimedia($request->title);
             $ebayResults = $this->searchEbay($request->title);
+            $youtubeResults = $this->searchYouTube($request->title);
+            $amazonResults = $this->searchAmazon($request->title);
         }
 
-        // Return a response with both the bookmarks and Google search results
+        // Return a search results
         return response()->json([
             'success' => true,
             'data' => [
@@ -52,6 +55,8 @@ class SearchController extends Controller
                 'google_search_results' => $googleResults,
                 'wikimedia_search_results' => $wikimediaResults,
                 'ebay_search_results' => $ebayResults,
+                'youtube_search_results' => $youtubeResults,
+                'amazon_search_results' => $amazonResults,
             ],
         ]);
     }
@@ -68,7 +73,6 @@ class SearchController extends Controller
     */
     private function searchGoogle($title)
     {
-
         $apiKey = 'AIzaSyAxO2TWy6DOkl_8yLYSe3gy58oQNAq5edo';
         $cx = 'c5b2f0643f4b54394';
 
@@ -203,6 +207,105 @@ class SearchController extends Controller
                         'price' => $item['sellingStatus'][0]['currentPrice'][0]['__value__'] ?? 'N/A',
                         'currency' => $item['sellingStatus'][0]['currentPrice'][0]['@currencyId'] ?? '',
                         'image' => $item['galleryURL'][0] ?? '',
+                    ];
+                }
+            }
+
+            return $results;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+
+    /*
+    * Date: 13-mar-25
+    * Search is based on title in YouTube.
+    *
+    * This method allows searching data from YouTube api based on the following parameters:
+    * - title
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    private function searchYouTube($title)
+    {
+        $apiKey = 'AIzaSyA8ac-bB65BPHAdvPOOd3wshV2XpgtWD-s';
+        $client = new Client();
+        $encodedTitle = urlencode($title);
+
+        try {
+            $response = $client->get('https://www.googleapis.com/youtube/v3/search', [
+                'query' => [
+                    'part' => 'snippet',
+                    'q' => $encodedTitle,
+                    'key' => $apiKey,
+                    'type' => 'video',
+                    'maxResults' => 5,
+                ],
+            ]);
+
+            $youtubeData = json_decode($response->getBody()->getContents(), true);
+            $results = [];
+
+            if (isset($youtubeData['items'])) {
+                foreach ($youtubeData['items'] as $item) {
+                    $results[] = [
+                        'title' => $item['snippet']['title'],
+                        'link' => 'https://www.youtube.com/watch?v=' . $item['id']['videoId'],
+                        'thumbnail' => $item['snippet']['thumbnails']['default']['url'] ?? '',
+                    ];
+                }
+            }
+            return $results;
+        } catch (\Exception $e) {
+            return [];
+        }
+    }
+
+
+    /*
+    * Date: 13-mar-25
+    * Search is based on title in Amazon.
+    *
+    * This method allows searching data from Amazon api based on the following parameters:
+    * - title
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    private function searchAmazon($title)
+    {
+        $accessKey = 'YOUR_AMAZON_ACCESS_KEY';
+        $secretKey = 'YOUR_AMAZON_SECRET_KEY';
+        $partnerTag = 'YOUR_AMAZON_ASSOCIATE_TAG'; // Found in Amazon Associates account
+        $region = 'us'; // Change based on country (us, uk, de, etc.)
+        $client = new Client();
+        $encodedTitle = urlencode($title);
+
+        try {
+            $response = $client->get("https://webservices.amazon.$region/onca/xml", [
+                'query' => [
+                    'Service' => 'AWSECommerceService',
+                    'Operation' => 'ItemSearch',
+                    'AWSAccessKeyId' => $accessKey,
+                    'AssociateTag' => $partnerTag,
+                    'SearchIndex' => 'All',
+                    'Keywords' => $encodedTitle,
+                    'ResponseGroup' => 'Images,ItemAttributes,Offers'
+                ]
+            ]);
+
+            $xml = simplexml_load_string($response->getBody()->getContents());
+            $results = [];
+
+            if (isset($xml->Items->Item)) {
+                foreach ($xml->Items->Item as $item) {
+                    $results[] = [
+                        'title' => (string) $item->ItemAttributes->Title ?? '',
+                        'link' => (string) $item->DetailPageURL ?? '',
+                        'price' => (string) $item->OfferSummary->LowestNewPrice->FormattedPrice ?? 'N/A',
+                        'image' => (string) $item->LargeImage->URL ?? '',
                     ];
                 }
             }
