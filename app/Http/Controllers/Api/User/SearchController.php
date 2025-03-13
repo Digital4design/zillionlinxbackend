@@ -276,43 +276,44 @@ class SearchController extends Controller
     */
     private function searchAmazon($title)
     {
-        $accessKey = 'YOUR_AMAZON_ACCESS_KEY';
-        $secretKey = 'YOUR_AMAZON_SECRET_KEY';
-        $partnerTag = 'YOUR_AMAZON_ASSOCIATE_TAG'; // Found in Amazon Associates account
-        $region = 'us'; // Change based on country (us, uk, de, etc.)
-        $client = new Client();
-        $encodedTitle = urlencode($title);
+        // $accessKey = 'YOUR_AMAZON_ACCESS_KEY';
+        // $secretKey = 'YOUR_AMAZON_SECRET_KEY';
+        // $partnerTag = 'YOUR_AMAZON_ASSOCIATE_TAG'; // Found in Amazon Associates account
+        // $region = 'us'; // Change based on country (us, uk, de, etc.)
+        // $client = new Client();
+        // $encodedTitle = urlencode($title);
 
-        try {
-            $response = $client->get("https://webservices.amazon.$region/onca/xml", [
-                'query' => [
-                    'Service' => 'AWSECommerceService',
-                    'Operation' => 'ItemSearch',
-                    'AWSAccessKeyId' => $accessKey,
-                    'AssociateTag' => $partnerTag,
-                    'SearchIndex' => 'All',
-                    'Keywords' => $encodedTitle,
-                    'ResponseGroup' => 'Images,ItemAttributes,Offers'
-                ]
-            ]);
+        // try {
+        //     $response = $client->get("https://webservices.amazon.$region/onca/xml", [
+        //         'query' => [
+        //             'Service' => 'AWSECommerceService',
+        //             'Operation' => 'ItemSearch',
+        //             'AWSAccessKeyId' => $accessKey,
+        //             'AssociateTag' => $partnerTag,
+        //             'SearchIndex' => 'All',
+        //             'Keywords' => $encodedTitle,
+        //             'ResponseGroup' => 'Images,ItemAttributes,Offers'
+        //         ]
+        //     ]);
 
-            $xml = simplexml_load_string($response->getBody()->getContents());
-            $results = [];
+        //     $xml = simplexml_load_string($response->getBody()->getContents());
+        //     $results = [];
 
-            if (isset($xml->Items->Item)) {
-                foreach ($xml->Items->Item as $item) {
-                    $results[] = [
-                        'title' => (string) $item->ItemAttributes->Title ?? '',
-                        'link' => (string) $item->DetailPageURL ?? '',
-                        'price' => (string) $item->OfferSummary->LowestNewPrice->FormattedPrice ?? 'N/A',
-                        'image' => (string) $item->LargeImage->URL ?? '',
-                    ];
-                }
-            }
+        //     if (isset($xml->Items->Item)) {
+        //         foreach ($xml->Items->Item as $item) {
+        //             $results[] = [
+        //                 'title' => (string) $item->ItemAttributes->Title ?? '',
+        //                 'link' => (string) $item->DetailPageURL ?? '',
+        //                 'price' => (string) $item->OfferSummary->LowestNewPrice->FormattedPrice ?? 'N/A',
+        //                 'image' => (string) $item->LargeImage->URL ?? '',
+        //             ];
+        //         }
+        //     }
 
-            return $results;
-        } catch (\Exception $e) {
-            return [];
-        }
+        //     return $results;
+        // } catch (\Exception $e) {
+        //     return [];
+        // }
+        return "https://www.amazon.com/s?k=" . urlencode($title);
     }
 }
