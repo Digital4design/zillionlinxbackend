@@ -45,6 +45,8 @@ class SearchController extends Controller
             $ebayResults = $this->searchEbay($request->title);
             $youtubeResults = $this->searchYouTube($request->title);
             $amazonResults = $this->searchAmazon($request->title);
+            $wikiStaticLink = "https://en.wikipedia.org/wiki/Special:Search?search=" . urlencode($request->title);
+            $youtubeStaticLink = "https://www.youtube.com/results?search_query=" . urlencode($request->title);
         }
 
         // Return a search results
@@ -57,6 +59,8 @@ class SearchController extends Controller
                 'ebay_search_results' => $ebayResults,
                 'youtube_search_results' => $youtubeResults,
                 'amazon_search_results' => $amazonResults,
+                'wikiStaticLink' => $wikiStaticLink,
+                'youtubeStaticLink' => $youtubeStaticLink,
             ],
         ]);
     }
@@ -276,44 +280,6 @@ class SearchController extends Controller
     */
     private function searchAmazon($title)
     {
-        // $accessKey = 'YOUR_AMAZON_ACCESS_KEY';
-        // $secretKey = 'YOUR_AMAZON_SECRET_KEY';
-        // $partnerTag = 'YOUR_AMAZON_ASSOCIATE_TAG'; // Found in Amazon Associates account
-        // $region = 'us'; // Change based on country (us, uk, de, etc.)
-        // $client = new Client();
-        // $encodedTitle = urlencode($title);
-
-        // try {
-        //     $response = $client->get("https://webservices.amazon.$region/onca/xml", [
-        //         'query' => [
-        //             'Service' => 'AWSECommerceService',
-        //             'Operation' => 'ItemSearch',
-        //             'AWSAccessKeyId' => $accessKey,
-        //             'AssociateTag' => $partnerTag,
-        //             'SearchIndex' => 'All',
-        //             'Keywords' => $encodedTitle,
-        //             'ResponseGroup' => 'Images,ItemAttributes,Offers'
-        //         ]
-        //     ]);
-
-        //     $xml = simplexml_load_string($response->getBody()->getContents());
-        //     $results = [];
-
-        //     if (isset($xml->Items->Item)) {
-        //         foreach ($xml->Items->Item as $item) {
-        //             $results[] = [
-        //                 'title' => (string) $item->ItemAttributes->Title ?? '',
-        //                 'link' => (string) $item->DetailPageURL ?? '',
-        //                 'price' => (string) $item->OfferSummary->LowestNewPrice->FormattedPrice ?? 'N/A',
-        //                 'image' => (string) $item->LargeImage->URL ?? '',
-        //             ];
-        //         }
-        //     }
-
-        //     return $results;
-        // } catch (\Exception $e) {
-        //     return [];
-        // }
         return "https://www.amazon.com/s?k=" . urlencode($title);
     }
 }
