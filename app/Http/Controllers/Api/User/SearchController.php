@@ -47,6 +47,7 @@ class SearchController extends Controller
             $amazonStaticLink = $this->searchAmazon($request->title);
             $wikiStaticLink = "https://en.wikipedia.org/wiki/Special:Search?search=" . urlencode($request->title);
             $youtubeStaticLink = "https://www.youtube.com/results?search_query=" . urlencode($request->title);
+            $ebayStaticLink = "https://www.ebay.com/sch/i.html?_nkw=" . urlencode($request->title);
         }
 
         // Return a search results
@@ -61,6 +62,7 @@ class SearchController extends Controller
                 'amazonStaticLink' => $amazonStaticLink,
                 'wikiStaticLink' => $wikiStaticLink,
                 'youtubeStaticLink' => $youtubeStaticLink,
+                'ebayStaticLink' => $ebayStaticLink,
             ],
         ]);
     }
