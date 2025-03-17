@@ -40,8 +40,9 @@ class BookmarkController extends Controller
             $fileName = $request->title . time() . '.png';
             $filePath = storage_path("app/public/{$fileName}");
             Browsershot::url($request->url)
+                ->timeout(60)
                 ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
-                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox', '--disable-http2'])
+                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox', '--disable-http2', '--disable-site-isolation-trials'])
                 ->save($filePath);
 
             $bookmark = Bookmark::create([
