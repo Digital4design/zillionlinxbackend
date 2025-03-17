@@ -44,7 +44,7 @@ Route::get('/send-test-email', function () {
         return response()->json(['message' => 'Mail sending failed.', 'error' => $e->getMessage()], 500);
     }
 });
-
+Route::get('/bookmarks', [BookmarkController::class, 'getBookmarks']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // Bookmark routes
