@@ -76,7 +76,7 @@ class BookmarkController extends Controller
 
         try {
             $userId = Auth::id(); // Get authenticated user ID
-
+            dd($userId);
             $bookmarks = UserBookmark::with('bookmark')
                 ->where('user_id', $userId)
                 ->where('category_id', $validated['category_id'])
