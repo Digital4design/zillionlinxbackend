@@ -140,7 +140,7 @@ class BookmarkController extends Controller
                         'created_at'     => $userBookmark->created_at,
                         'updated_at'     => $userBookmark->updated_at,
                         'website_url'    => $userBookmark->bookmark->website_url ?? null,
-                        // 'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
+                        'title'      => $userBookmark->bookmark->title ?? null,
                         'icon_path'      => asset('storage/' . $userBookmark->bookmark->icon_path ?? null),
                     ];
                 });
