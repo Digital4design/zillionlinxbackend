@@ -65,6 +65,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-
+Route::middleware('auth:sanctum')->get('/check-token', function (Request $request) {
+    return response()->json([
+        'message' => 'Token is valid',
+        'user' => $request->user(),
+    ], 200);
+});
 
 require __DIR__ . '/admin.php';
