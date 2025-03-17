@@ -49,7 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Bookmark routes
     Route::post('/add-bookmark', [BookmarkController::class, 'addBookmark']);
-    Route::get('/bookmarks', [BookmarkController::class, 'getBookmarks']);
+    // Route::get('/bookmarks', [BookmarkController::class, 'getBookmarks']);
     Route::get('/top-links', [BookmarkController::class, 'topLinks']);
 
     Route::delete('/bookmark/{id}', [BookmarkController::class, 'removeBookmark']);
