@@ -69,7 +69,7 @@ class BookmarkController extends Controller
 
     public function getBookmarks(Request $request)
     {
-
+        dd('here');
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'sub_category_id' => 'nullable|exists:categories,id',
