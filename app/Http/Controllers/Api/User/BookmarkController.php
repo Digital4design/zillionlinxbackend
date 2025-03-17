@@ -35,6 +35,8 @@ class BookmarkController extends Controller
                     'message' => 'Duplicate entry: The bookmark already exists.',
                 ], 409);
             }
+
+
             $fileName = $request->title . time() . '.png';
             $filePath = storage_path("app/public/{$fileName}");
             Browsershot::url($request->url)
@@ -165,7 +167,6 @@ class BookmarkController extends Controller
 
     public function removeBookmark(Request $request, $id)
     {
-
         try {
             $topLink = UserBookmark::find($id);
 
@@ -175,7 +176,13 @@ class BookmarkController extends Controller
                     'message' => 'Top link not found'
                 ], 404);
             }
+            $Bookmark = Bookmark::find($topLink->bookmark_id);
+            if ($Bookmark) {
+                $Bookmark->delete();
+            }
+
             $topLink->delete();
+
 
             return response()->json([
                 'status' => 200,
