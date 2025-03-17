@@ -67,10 +67,6 @@ class BookmarkController extends Controller
         }
     }
 
-    public function test()
-    {
-        return response()->json(['message' => 'Test route']);
-    }
 
     public function getBookmarks(Request $request)
     {
