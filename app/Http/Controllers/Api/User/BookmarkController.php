@@ -67,6 +67,7 @@ class BookmarkController extends Controller
         }
     }
 
+
     public function getBookmarks(Request $request)
     {
 
