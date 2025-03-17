@@ -69,6 +69,7 @@ class BookmarkController extends Controller
 
     public function getBookmarks(Request $request)
     {
+        dd(1);
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
             'sub_category_id' => 'nullable|exists:categories,id',
@@ -76,7 +77,7 @@ class BookmarkController extends Controller
 
         try {
             $userId = Auth::id(); // Get authenticated user ID
-            dd($userId);
+
             $bookmarks = UserBookmark::with('bookmark')
                 ->where('user_id', $userId)
                 ->where('category_id', $validated['category_id'])
