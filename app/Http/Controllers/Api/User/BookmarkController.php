@@ -8,6 +8,7 @@ use Spatie\Browsershot\Browsershot;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Bookmark;
 use App\Models\UserBookmark;
+use App\Models\Category;
 use Exception;
 
 class BookmarkController extends Controller
@@ -19,7 +20,7 @@ class BookmarkController extends Controller
             'url' => 'required|url',
             'title' => 'required|string',
             'category_id' => 'required|exists:categories,id',
-            'sub_category_id' => 'nullable|exists:categories,id',
+            // 'sub_category_id' => 'nullable|exists:categories,id',
             'addTo' => 'nullable|string',
         ]);
 
@@ -35,8 +36,23 @@ class BookmarkController extends Controller
                     'message' => 'Duplicate entry: The bookmark already exists.',
                 ], 409);
             }
+            if (isset($request->sub_category_name)) {
+                $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->first();
 
+                if (empty($cat_data)) {
+                    $category =  Category::create([
+                        'title' => $request->sub_category_name,
+                        'parent_id' => $request->category_id,
+                    ]);
+                    $sub_cat_id = $category->id;
+                } else {
+                    $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->first();
+                    $sub_cat_id = $cat_data->id;
+                }
+            } else {
 
+                $sub_cat_id = $request->sub_category_id;
+            }
             $fileName = $request->title . time() . '.png';
             $filePath = storage_path("app/public/{$fileName}");
             Browsershot::url($request->url)
@@ -52,11 +68,12 @@ class BookmarkController extends Controller
                 // 'icon_path' => "storage/{$fileName}",
                 'icon_path' => "{$fileName}",
             ]);
+            //dd($sub_cat_id);
             UserBookmark::create([
                 'bookmark_id' => $bookmark->id,
                 'user_id' => Auth::id(),
                 'category_id' => $request->category_id,
-                'sub_category_id' => $request->sub_category_id,
+                'sub_category_id' => $sub_cat_id,
                 'add_to' => $request->add_to,
             ]);
 
@@ -153,7 +170,7 @@ class BookmarkController extends Controller
                     'data'    => [],
                 ], 404);
             }
- 
+
             return response()->json([
                 'status'  => 200,
                 'message' => 'Bookmarks retrieved successfully',
