@@ -101,6 +101,7 @@ class BookmarkController extends Controller
                         'created_at'     => $userBookmark->created_at,
                         'updated_at'     => $userBookmark->updated_at,
                         'website_url'    => $userBookmark->bookmark->website_url ?? null,
+                        'title'          => $userBookmark->bookmark->title ?? null,
                         'icon_path'      => asset('storage/' . $userBookmark->bookmark->icon_path ?? null),
                     ];
                 });
@@ -140,7 +141,7 @@ class BookmarkController extends Controller
                         'created_at'     => $userBookmark->created_at,
                         'updated_at'     => $userBookmark->updated_at,
                         'website_url'    => $userBookmark->bookmark->website_url ?? null,
-                        'title'      => $userBookmark->bookmark->title ?? null,
+                        'title'          => $userBookmark->bookmark->title ?? null,
                         'icon_path'      => asset('storage/' . $userBookmark->bookmark->icon_path ?? null),
                     ];
                 });
@@ -152,7 +153,7 @@ class BookmarkController extends Controller
                     'data'    => [],
                 ], 404);
             }
-
+ 
             return response()->json([
                 'status'  => 200,
                 'message' => 'Bookmarks retrieved successfully',
