@@ -79,6 +79,9 @@ class BookmarkController extends Controller
 
             return response()->json([
                 'message' => 'Bookmark added successfully!',
+                'category_id' => $request->category_id,
+                'add_to' => $request->add_to,
+                'sub_category_id' => $sub_cat_id,
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Screenshot failed: ' . $e->getMessage()], 500);
