@@ -30,7 +30,7 @@ class SearchController extends Controller
             $query->where('title', 'like', '%' . $request->title . '%');
         }
 
-        $bookmarks = $query->select('website_url', 'icon_path')->get();
+        $bookmarks = $query->select('website_url', 'icon_path', 'title')->get();
 
         //call functions
         $googleResults = [];
