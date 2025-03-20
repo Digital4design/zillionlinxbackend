@@ -18,6 +18,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
     Route::put('/categories/{id}', [CategoryController::class, 'update']);
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
-    Route::delete('/user/delete/{id}', [UserController::class, 'destroy']);
+    Route::delete('/user/delete', [UserController::class, 'destroy']);
     Route::post('/user/update/{id}', [UserController::class, 'update']);
 });

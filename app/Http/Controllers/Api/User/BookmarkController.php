@@ -272,4 +272,64 @@ class BookmarkController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Date: 20-Mar-2025
+     * Import bookmarks from an uploaded file (HTML or JSON).
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function import(Request $request)
+    {
+        if (Auth::user()->role_id !== 2) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403);
+        }
+
+        $request->validate([
+            'file' => 'required|mimes:html,json|max:2048',
+        ]);
+
+        $file = $request->file('file');
+        $content = file_get_contents($file->getPathname());
+
+        if ($file->getClientOriginalExtension() == 'html') {
+            $bookmarks = $this->parseHtml($content);
+        } else {
+            $bookmarks = json_decode($content, true) ?? [];
+        }
+
+        foreach ($bookmarks as $bookmark) {
+            Bookmark::create([
+                'user_id' => Auth::id(),
+                'title' => $bookmark['title'],
+                'website_url' => $bookmark['url'],
+            ]);
+        }
+
+        return response()->json(['message' => 'Bookmarks imported successfully']);
+    }
+
+    /**
+     * Date: 20-Mar-2025
+     * Parse bookmarks from an HTML file (exported from a browser).
+     *
+     * @param string $htmlContent
+     * @return array
+     */
+    private function parseHtml($htmlContent)
+    {
+        $bookmarks = [];
+        preg_match_all('/<A HREF="([^"]+)".*>(.*?)<\/A>/', $htmlContent, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $bookmarks[] = ['url' => $match[1], 'title' => strip_tags($match[2])];
+        }
+
+        return $bookmarks;
+    }
 }
