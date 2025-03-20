@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\Admin\CategoryController;
 use App\Http\Controllers\Api\Admin\UserController;
-
+use App\Http\Controllers\Api\Admin\BookmarkController;
 use App\Http\Controllers\Api\AuthController;
 
 Route::post('/admin/login', [AuthController::class, 'adminLogin']);
@@ -20,4 +20,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
     Route::delete('/user/delete', [UserController::class, 'destroy']);
     Route::post('/user/update/{id}', [UserController::class, 'update']);
+    Route::get('/getAllBookmarks', [BookmarkController::class, 'getAllBookmarks']);
 });
