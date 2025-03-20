@@ -21,4 +21,19 @@ class UserBookmark extends Model
     {
         return $this->belongsTo(Bookmark::class, 'bookmark_id');
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function category_name()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function sub_category_name()
+    {
+        return $this->belongsTo(Category::class, 'sub_category_id');
+    }
 }
