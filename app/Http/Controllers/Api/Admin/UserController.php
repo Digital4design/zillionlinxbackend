@@ -41,6 +41,16 @@ class UserController extends Controller
         }
     }
 
+    /*
+    * Date: 18-Mar-2025
+    * Create User Data.
+    *
+    * This method allows creating a user based on the following parameter:
+    * - first_name, last_name, email, password, country
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
     public function create(RegisterRequest $request)
     {
         try {
@@ -67,6 +77,62 @@ class UserController extends Controller
             return success("Registered successful");
         } catch (\Exception $ex) {
             return error($ex->getMessage());
+        }
+    }
+
+    /*
+    * Date: 20-Mar-2025
+    * Delete User Data.
+    *
+    * This method allows deleting a user based on the following parameter:
+    * - ID
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function destroy($id)
+    {
+        if (Auth::user()->role_id !== 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403);
+        }
+        try {
+            $user = User::findOrFail($id);
+            $user->delete();
+            return response()->json(['message' => 'User deleted successfully!']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'User not found or could not be deleted!', 'message' => $e->getMessage()], 404);
+        }
+    }
+
+    /*
+    * Date: 20-Mar-2025
+    * Update User Data.
+    *
+    * This method allows updating a user based on the following parameter:
+    * - first_name, last_name, email, country
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function update(Request $request, $id)
+    {
+        if (Auth::user()->role_id !== 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403);
+        }
+        try {
+            $user = User::findOrFail($id);
+            $user->update($request->all());
+            return response()->json(['message' => 'User updated successfully!']);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'User not found or could not be updated!', 'message' => $e->getMessage()], 404);
         }
     }
 }
