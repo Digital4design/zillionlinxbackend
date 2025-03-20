@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Bookmark;
 use GuzzleHttp\Client;
-
+use Illuminate\Support\Facades\Auth;
 
 class SearchController extends Controller
 {
@@ -283,5 +283,41 @@ class SearchController extends Controller
     private function searchAmazon($title)
     {
         return "https://www.amazon.com/s?k=" . urlencode($title);
+    }
+
+    /*
+    * Date: 20-mar-25
+    * Search is based on title in database.
+    *
+    * This method allows searching data from database based on title:
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function search_bookmark(Request $request)
+    {
+        if (Auth::user()->role_id !== 2) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403);
+        }
+
+        $query = Bookmark::query();
+
+        if ($request->has('title')) {
+            $query->where('title', 'like', '%' . $request->title . '%');
+        }
+
+        $bookmarks = $query->select('website_url', 'icon_path', 'title')->get();
+
+        // Return a search results
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'bookmarks' => $bookmarks,
+            ],
+        ]);
     }
 }

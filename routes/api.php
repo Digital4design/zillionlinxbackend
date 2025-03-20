@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/categories', [CategoryController::class, 'store']);
 
     Route::post('/search', [SearchController::class, 'search']);
+    Route::post('/search_bookmark', [SearchController::class, 'search_bookmark']);
 
     // Test Email Route (only authenticated users)
 
