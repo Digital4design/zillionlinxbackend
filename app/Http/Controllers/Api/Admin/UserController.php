@@ -90,7 +90,7 @@ class UserController extends Controller
     * @param \Illuminate\Http\Request $request
     * @return \Illuminate\Http\JsonResponse
     */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
         if (Auth::user()->role_id !== 1) {
             return response()->json([
@@ -99,12 +99,25 @@ class UserController extends Controller
                 'status_code' => 403,
             ], 403);
         }
+
         try {
-            $user = User::findOrFail($id);
-            $user->delete();
-            return response()->json(['message' => 'User deleted successfully!']);
+            $ids = $request->input('ids'); // Expecting an array or a single ID
+
+            if (is_array($ids)) {
+                // Delete multiple users
+                $deleted = User::whereIn('id', $ids)->delete();
+            } else {
+                // Delete single user
+                $deleted = User::where('id', $ids)->delete();
+            }
+
+            if ($deleted) {
+                return response()->json(['message' => 'User(s) deleted successfully!']);
+            } else {
+                return response()->json(['error' => 'User(s) not found or could not be deleted!'], 404);
+            }
         } catch (\Exception $e) {
-            return response()->json(['error' => 'User not found or could not be deleted!', 'message' => $e->getMessage()], 404);
+            return response()->json(['error' => 'An error occurred!', 'message' => $e->getMessage()], 500);
         }
     }
 
