@@ -13,94 +13,19 @@ use Exception;
 
 class BookmarkController extends Controller
 {
-    // public function addBookmark(Request $request)
-    // {
-    //     // Validate the request
-    //     $request->validate([
-    //         'url' => 'required|url',
-    //         'title' => 'required|string',
-    //         'category_id' => 'required|exists:categories,id',
-    //         // 'sub_category_id' => 'nullable|exists:categories,id',
-    //         'addTo' => 'nullable|string',
-    //     ]);
-
-    //     try {
-
-    //         $existingBookmark = Bookmark::where('website_url', $request->url)
-    //             ->where('user_id', Auth::id())
-    //             ->first();
-
-    //         if ($existingBookmark) {
-    //             return response()->json([
-    //                 'error' => 'You have already bookmarked this URL.',
-    //                 'message' => 'Duplicate entry: The bookmark already exists.',
-    //             ], 409);
-    //         }
-    //         if (isset($request->sub_category_name)) {
-    //             $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->first();
-
-    //             if (empty($cat_data)) {
-    //                 $category =  Category::create([
-    //                     'title' => $request->sub_category_name,
-    //                     'parent_id' => $request->category_id,
-    //                 ]);
-    //                 $sub_cat_id = $category->id;
-    //             } else {
-    //                 $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->first();
-    //                 $sub_cat_id = $cat_data->id;
-    //             }
-    //         } else {
-
-    //             $sub_cat_id = $request->sub_category_id;
-    //         }
-    //         $fileName = $request->title . time() . '.png';
-    //         $filePath = storage_path("app/public/{$fileName}");
-    //         Browsershot::url($request->url)
-    //             ->timeout(120000)
-    //             ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
-    //             ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox', '--disable-http2', '--disable-site-isolation-trials'])
-    //             ->save($filePath);
-
-    //         $bookmark = Bookmark::create([
-    //             'title' => $request->title,
-    //             'user_id' => Auth::id(),
-    //             'website_url' => $request->url,
-    //             // 'icon_path' => "storage/{$fileName}",
-    //             'icon_path' => "{$fileName}",
-    //         ]);
-    //         //dd($sub_cat_id);
-    //         UserBookmark::create([
-    //             'bookmark_id' => $bookmark->id,
-    //             'user_id' => Auth::id(),
-    //             'category_id' => $request->category_id,
-    //             'sub_category_id' => $sub_cat_id,
-    //             'add_to' => $request->add_to,
-    //         ]);
-
-    //         return response()->json([
-    //             'message' => 'Bookmark added successfully!',
-    //             'category_id' => $request->category_id,
-    //             'add_to' => $request->add_to,
-    //             'sub_category_id' => $sub_cat_id,
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json(['error' => 'Screenshot failed: ' . $e->getMessage()], 500);
-    //     }
-    // }
-
-
     public function addBookmark(Request $request)
     {
-        // Validate request
+        // Validate the request
         $request->validate([
             'url' => 'required|url',
             'title' => 'required|string',
             'category_id' => 'required|exists:categories,id',
+            // 'sub_category_id' => 'nullable|exists:categories,id',
             'addTo' => 'nullable|string',
         ]);
 
         try {
-            // Check if bookmark already exists
+
             $existingBookmark = Bookmark::where('website_url', $request->url)
                 ->where('user_id', Auth::id())
                 ->first();
@@ -111,63 +36,44 @@ class BookmarkController extends Controller
                     'message' => 'Duplicate entry: The bookmark already exists.',
                 ], 409);
             }
+            if (isset($request->sub_category_name)) {
+                $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->first();
 
-            // Extract website logo (og:image, twitter:image, schema.org)
-            $websiteLogo = null;
-            try {
-                $client = new \GuzzleHttp\Client([
-                    'headers' => [
-                        'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-                    ]
-                ]);
-                $response = $client->get($request->url);
-                $html = $response->getBody()->getContents();
-
-                // Try multiple methods to extract logo
-                if (preg_match('/<meta property="og:image" content="(.*?)"/i', $html, $matches)) {
-                    $websiteLogo = $matches[1];
-                } elseif (preg_match('/<meta name="twitter:image" content="(.*?)"/i', $html, $matches)) {
-                    $websiteLogo = $matches[1];
-                } elseif (preg_match('/<meta itemprop="logo" content="(.*?)"/i', $html, $matches)) {
-                    $websiteLogo = $matches[1];
+                if (empty($cat_data)) {
+                    $category =  Category::create([
+                        'title' => $request->sub_category_name,
+                        'parent_id' => $request->category_id,
+                    ]);
+                    $sub_cat_id = $category->id;
+                } else {
+                    $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->first();
+                    $sub_cat_id = $cat_data->id;
                 }
-            } catch (\Exception $e) {
-                // Ignore errors and proceed with favicon fallback
+            } else {
+
+                $sub_cat_id = $request->sub_category_id;
             }
-
-            // Extract domain for favicon as a fallback
-            $parsedUrl = parse_url($request->url);
-            $domain = $parsedUrl['host'] ?? '';
-            $faviconUrl = $domain ? "https://www.google.com/s2/favicons?sz=128&domain={$domain}" : '';
-
-            // Use extracted logo if found, otherwise use favicon
-            $finalLogo = $websiteLogo ?? $faviconUrl;
-
-            // Generate a filename for the screenshot
             $fileName = $request->title . time() . '.png';
             $filePath = storage_path("app/public/{$fileName}");
-
-            // Take a screenshot of the website using Browsershot
             Browsershot::url($request->url)
                 ->timeout(120000)
                 ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
                 ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox', '--disable-http2', '--disable-site-isolation-trials'])
                 ->save($filePath);
 
-            // Save the bookmark with logo and screenshot
             $bookmark = Bookmark::create([
                 'title' => $request->title,
                 'user_id' => Auth::id(),
                 'website_url' => $request->url,
-                'icon_path' => $fileName, // Screenshot file
-                'favicon_path' => $finalLogo, // Website logo (or favicon fallback)
+                // 'icon_path' => "storage/{$fileName}",
+                'icon_path' => "{$fileName}",
             ]);
-
+            //dd($sub_cat_id);
             UserBookmark::create([
                 'bookmark_id' => $bookmark->id,
                 'user_id' => Auth::id(),
                 'category_id' => $request->category_id,
-                'sub_category_id' => $request->sub_category_id,
+                'sub_category_id' => $sub_cat_id,
                 'add_to' => $request->add_to,
             ]);
 
@@ -175,12 +81,106 @@ class BookmarkController extends Controller
                 'message' => 'Bookmark added successfully!',
                 'category_id' => $request->category_id,
                 'add_to' => $request->add_to,
-                'logo_url' => $finalLogo, // Return the website's actual logo
+                'sub_category_id' => $sub_cat_id,
             ]);
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Screenshot failed: ' . $e->getMessage()], 500);
         }
     }
+
+
+    // public function addBookmark(Request $request)
+    // {
+    //     // Validate request
+    //     $request->validate([
+    //         'url' => 'required|url',
+    //         'title' => 'required|string',
+    //         'category_id' => 'required|exists:categories,id',
+    //         'addTo' => 'nullable|string',
+    //     ]);
+
+    //     try {
+    //         // Check if bookmark already exists
+    //         $existingBookmark = Bookmark::where('website_url', $request->url)
+    //             ->where('user_id', Auth::id())
+    //             ->first();
+
+    //         if ($existingBookmark) {
+    //             return response()->json([
+    //                 'error' => 'You have already bookmarked this URL.',
+    //                 'message' => 'Duplicate entry: The bookmark already exists.',
+    //             ], 409);
+    //         }
+
+    //         // Extract website logo (og:image, twitter:image, schema.org)
+    //         $websiteLogo = null;
+    //         try {
+    //             $client = new \GuzzleHttp\Client([
+    //                 'headers' => [
+    //                     'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+    //                 ]
+    //             ]);
+    //             $response = $client->get($request->url);
+    //             $html = $response->getBody()->getContents();
+
+    //             // Try multiple methods to extract logo
+    //             if (preg_match('/<meta property="og:image" content="(.*?)"/i', $html, $matches)) {
+    //                 $websiteLogo = $matches[1];
+    //             } elseif (preg_match('/<meta name="twitter:image" content="(.*?)"/i', $html, $matches)) {
+    //                 $websiteLogo = $matches[1];
+    //             } elseif (preg_match('/<meta itemprop="logo" content="(.*?)"/i', $html, $matches)) {
+    //                 $websiteLogo = $matches[1];
+    //             }
+    //         } catch (\Exception $e) {
+    //             // Ignore errors and proceed with favicon fallback
+    //         }
+
+    //         // Extract domain for favicon as a fallback
+    //         $parsedUrl = parse_url($request->url);
+    //         $domain = $parsedUrl['host'] ?? '';
+    //         $faviconUrl = $domain ? "https://www.google.com/s2/favicons?sz=128&domain={$domain}" : '';
+
+    //         // Use extracted logo if found, otherwise use favicon
+    //         $finalLogo = $websiteLogo ?? $faviconUrl;
+
+    //         // Generate a filename for the screenshot
+    //         $fileName = $request->title . time() . '.png';
+    //         $filePath = storage_path("app/public/{$fileName}");
+
+    //         // Take a screenshot of the website using Browsershot
+    //         Browsershot::url($request->url)
+    //             ->timeout(120000)
+    //             ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
+    //             ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox', '--disable-http2', '--disable-site-isolation-trials'])
+    //             ->save($filePath);
+
+    //         // Save the bookmark with logo and screenshot
+    //         $bookmark = Bookmark::create([
+    //             'title' => $request->title,
+    //             'user_id' => Auth::id(),
+    //             'website_url' => $request->url,
+    //             'icon_path' => $fileName, // Screenshot file
+    //             'favicon_path' => $finalLogo, // Website logo (or favicon fallback)
+    //         ]);
+
+    //         UserBookmark::create([
+    //             'bookmark_id' => $bookmark->id,
+    //             'user_id' => Auth::id(),
+    //             'category_id' => $request->category_id,
+    //             'sub_category_id' => $request->sub_category_id,
+    //             'add_to' => $request->add_to,
+    //         ]);
+
+    //         return response()->json([
+    //             'message' => 'Bookmark added successfully!',
+    //             'category_id' => $request->category_id,
+    //             'add_to' => $request->add_to,
+    //             'logo_url' => $finalLogo, // Return the website's actual logo
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => 'Something went wrong: ' . $e->getMessage()], 500);
+    //     }
+    // }
 
 
 
