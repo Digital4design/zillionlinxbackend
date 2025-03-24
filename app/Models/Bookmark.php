@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Bookmark extends Model
 {
-    
+
 
     protected $fillable = [
         'title',
@@ -14,7 +14,8 @@ class Bookmark extends Model
         'website_url',
         'icon_path',
         'pinned',
-        'position'
+        'position',
+        'favicon_path',
 
     ];
     public function userBookmarks()
@@ -22,4 +23,3 @@ class Bookmark extends Model
         return $this->hasMany(UserBookmark::class, 'bookmark_id');
     }
 }
-

@@ -12,6 +12,17 @@ use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
 
+    public function __construct()
+    {
+        if (Auth::check() && Auth::user()->role_id !== 1) {
+            abort(response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403));
+        }
+    }
+
     public function index(Request $request)
     {
         try {
@@ -92,14 +103,6 @@ class UserController extends Controller
     */
     public function destroy(Request $request)
     {
-        if (Auth::user()->role_id !== 1) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized access',
-                'status_code' => 403,
-            ], 403);
-        }
-
         try {
             $ids = $request->input('ids'); // Expecting an array or a single ID
 
@@ -133,13 +136,6 @@ class UserController extends Controller
     */
     public function update(Request $request, $id)
     {
-        if (Auth::user()->role_id !== 1) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized access',
-                'status_code' => 403,
-            ], 403);
-        }
         try {
             $user = User::findOrFail($id);
             $user->update($request->all());

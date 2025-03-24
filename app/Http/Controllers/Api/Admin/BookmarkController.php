@@ -11,6 +11,17 @@ use App\Models\User;
 
 class BookmarkController extends Controller
 {
+    public function __construct()
+    {
+        if (Auth::check() && Auth::user()->role_id !== 1) {
+            abort(response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403));
+        }
+    }
+
     public function index(Request $request)
     {
         $validated = $request->validate([
@@ -68,14 +79,6 @@ class BookmarkController extends Controller
      */
     public function getAllBookmarks()
     {
-        if (Auth::user()->role_id !== 1) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized access',
-                'status_code' => 403,
-            ], 403);
-        }
-
         try {
             $bookmarks = UserBookmark::with('bookmark', 'user')
                 ->orderByDesc('pinned') // Show pinned bookmarks first
