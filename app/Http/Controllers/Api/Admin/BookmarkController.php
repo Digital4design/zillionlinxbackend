@@ -77,36 +77,63 @@ class BookmarkController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getAllBookmarks()
+    public function getAllBookmarks(Request $request)
     {
         try {
-            $bookmarks = UserBookmark::with('bookmark', 'user')
-                ->orderByDesc('pinned') // Show pinned bookmarks first
-                ->orderBy('position', 'asc') // Then order by position
-                ->get()
-                ->map(function ($userBookmark) {
-                    return [
-                        'id'             => $userBookmark->id,
-                        'bookmark_id'    => $userBookmark->bookmark_id,
-                        'user_id'        => $userBookmark->user_id,
-                        'user_name'      => ($userBookmark->user->first_name ?? '') . ' ' . ($userBookmark->user->last_name ?? ''), // Fetch user name
-                        'category_id'    => $userBookmark->category_id,
-                        'category_name'  => $userBookmark->category_name->title ?? null, // Fetch category name
-                        'sub_category_id' => $userBookmark->sub_category_id,
-                        'sub_category_name' => $userBookmark->sub_category_name->title ?? null, // Fetch sub-category name
-                        'add_to'         => $userBookmark->add_to,
-                        'pinned'         => $userBookmark->pinned,
-                        'position'       => $userBookmark->position,
-                        'created_at'     => $userBookmark->created_at,
-                        'updated_at'     => $userBookmark->updated_at,
-                        'website_url'    => $userBookmark->bookmark->website_url ?? null,
-                        'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
-                    ];
-                });
+            $perPage = $request->input('per_page'); // Default to 10 per page
+            $search = $request->input('search');
+            $categoryId = $request->input('category_id');
+            $subCategoryId = $request->input('sub_category_id');
+            $pinned = $request->input('pinned');
+
+            $query = UserBookmark::with('bookmark', 'user')
+                ->when($search, function ($q) use ($search) {
+                    return $q->whereHas('bookmark', function ($query) use ($search) {
+                        $query->where('website_url', 'LIKE', "%$search%");
+                    });
+                })
+                ->when($categoryId, function ($q) use ($categoryId) {
+                    return $q->where('category_id', $categoryId);
+                })
+                ->when($subCategoryId, function ($q) use ($subCategoryId) {
+                    return $q->where('sub_category_id', $subCategoryId);
+                })
+                ->when(isset($pinned), function ($q) use ($pinned) {
+                    return $q->where('pinned', $pinned);
+                })
+                ->orderByDesc('pinned')
+                ->orderBy('position', 'asc')
+                ->paginate($perPage);
+
+            $formattedBookmarks = $query->map(function ($userBookmark) {
+                return [
+                    'id'             => $userBookmark->id,
+                    'bookmark_id'    => $userBookmark->bookmark_id,
+                    'user_id'        => $userBookmark->user_id,
+                    'user_name'      => ($userBookmark->user->first_name ?? '') . ' ' . ($userBookmark->user->last_name ?? ''),
+                    'category_id'    => $userBookmark->category_id,
+                    'category_name'  => $userBookmark->category_name->title ?? null,
+                    'sub_category_id' => $userBookmark->sub_category_id,
+                    'sub_category_name' => $userBookmark->sub_category_name->title ?? null,
+                    'add_to'         => $userBookmark->add_to,
+                    'pinned'         => $userBookmark->pinned,
+                    'position'       => $userBookmark->position,
+                    'created_at'     => $userBookmark->created_at,
+                    'updated_at'     => $userBookmark->updated_at,
+                    'website_url'    => $userBookmark->bookmark->website_url ?? null,
+                    'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
+                ];
+            });
 
             return response()->json([
-                'message'   => $bookmarks->isNotEmpty() ? 'All bookmarks retrieved successfully!' : 'No bookmarks found.',
-                'bookmarks' => $bookmarks,
+                'message'   => $formattedBookmarks->isNotEmpty() ? 'Bookmarks retrieved successfully!' : 'No bookmarks found.',
+                'bookmarks' => $formattedBookmarks,
+                'pagination' => [
+                    'current_page' => $query->currentPage(),
+                    'per_page'     => $query->perPage(),
+                    'total'        => $query->total(),
+                    'last_page'    => $query->lastPage(),
+                ],
             ], 200);
         } catch (\Exception $e) {
             return response()->json([

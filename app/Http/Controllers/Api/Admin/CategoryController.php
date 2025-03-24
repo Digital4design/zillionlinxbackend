@@ -85,7 +85,16 @@ class CategoryController extends Controller
         return response()->json(Category::findOrFail($id));
     }
 
-    // Update a category
+    /*
+    * Date: 24-Mar-2025
+    * Update Category and Sub-category Data.
+    *
+    * This method allows Updating a Category based on the following parameter:
+    * - ID
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
     public function update(Request $request, $id)
     {
         $category = Category::findOrFail($id);
