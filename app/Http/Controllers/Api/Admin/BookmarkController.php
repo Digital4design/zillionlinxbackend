@@ -80,7 +80,6 @@ class BookmarkController extends Controller
     public function getAllBookmarks(Request $request)
     {
         try {
-            $perPage = $request->input('per_page'); // Default to 10 per page
             $search = $request->input('search');
             $categoryId = $request->input('category_id');
             $subCategoryId = $request->input('sub_category_id');
@@ -103,41 +102,66 @@ class BookmarkController extends Controller
                 })
                 ->orderByDesc('pinned')
                 ->orderBy('position', 'asc')
-                ->paginate($perPage);
+                ->paginate(10); // Ensure consistent pagination
 
             $formattedBookmarks = $query->map(function ($userBookmark) {
                 return [
-                    'id'             => $userBookmark->id,
-                    'bookmark_id'    => $userBookmark->bookmark_id,
-                    'user_id'        => $userBookmark->user_id,
-                    'user_name'      => ($userBookmark->user->first_name ?? '') . ' ' . ($userBookmark->user->last_name ?? ''),
-                    'category_id'    => $userBookmark->category_id,
-                    'category_name'  => $userBookmark->category_name->title ?? null,
-                    'sub_category_id' => $userBookmark->sub_category_id,
+                    'id'               => $userBookmark->id,
+                    'bookmark_id'      => $userBookmark->bookmark_id,
+                    'user_id'          => $userBookmark->user_id,
+                    'user_name'        => ($userBookmark->user->first_name ?? '') . ' ' . ($userBookmark->user->last_name ?? ''),
+                    'category_id'      => $userBookmark->category_id,
+                    'category_name'    => $userBookmark->category_name->title ?? null,
+                    'sub_category_id'  => $userBookmark->sub_category_id,
                     'sub_category_name' => $userBookmark->sub_category_name->title ?? null,
-                    'add_to'         => $userBookmark->add_to,
-                    'pinned'         => $userBookmark->pinned,
-                    'position'       => $userBookmark->position,
-                    'created_at'     => $userBookmark->created_at,
-                    'updated_at'     => $userBookmark->updated_at,
-                    'website_url'    => $userBookmark->bookmark->website_url ?? null,
-                    'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
+                    'add_to'           => $userBookmark->add_to,
+                    'pinned'           => $userBookmark->pinned,
+                    'position'         => $userBookmark->position,
+                    'created_at'       => $userBookmark->created_at,
+                    'updated_at'       => $userBookmark->updated_at,
+                    'website_url'      => $userBookmark->bookmark->website_url ?? null,
+                    'icon_path'        => $userBookmark->bookmark->icon_path ?? null,
                 ];
             });
 
             return response()->json([
-                'message'   => $formattedBookmarks->isNotEmpty() ? 'Bookmarks retrieved successfully!' : 'No bookmarks found.',
-                'bookmarks' => $formattedBookmarks,
-                'pagination' => [
-                    'current_page' => $query->currentPage(),
-                    'per_page'     => $query->perPage(),
-                    'total'        => $query->total(),
-                    'last_page'    => $query->lastPage(),
-                ],
+                'status' => 'success',
+                'data' => [
+                    'current_page'   => $query->currentPage(),
+                    'data'           => $formattedBookmarks,
+                    'first_page_url' => $query->url(1),
+                    'from'           => $query->firstItem(),
+                    'last_page'      => $query->lastPage(),
+                    'last_page_url'  => $query->url($query->lastPage()),
+                    'links'          => [
+                        [
+                            'url'    => $query->previousPageUrl(),
+                            'label'  => '&laquo; Previous',
+                            'active' => $query->onFirstPage() ? false : true
+                        ],
+                        [
+                            'url'    => $query->url($query->currentPage()),
+                            'label'  => (string) $query->currentPage(),
+                            'active' => true
+                        ],
+                        [
+                            'url'    => $query->nextPageUrl(),
+                            'label'  => 'Next &raquo;',
+                            'active' => $query->hasMorePages() ? true : false
+                        ]
+                    ],
+                    'next_page_url' => $query->nextPageUrl(),
+                    'path'          => $request->url(),
+                    'per_page'      => $query->perPage(),
+                    'prev_page_url' => $query->previousPageUrl(),
+                    'to'            => $query->lastItem(),
+                    'total'         => $query->total()
+                ]
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
-                'error' => 'Failed to fetch bookmarks: ' . $e->getMessage(),
+                'status' => 'error',
+                'message' => 'Failed to fetch bookmarks: ' . $e->getMessage(),
             ], 500);
         }
     }
