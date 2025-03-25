@@ -61,7 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/search', [SearchController::class, 'search']);
     Route::post('/search_bookmark', [SearchController::class, 'search_bookmark']);
-
+    Route::post('/import-bookmark', [BookmarkController::class, 'index']);
     // Test Email Route (only authenticated users)
 
 });

@@ -13,6 +13,19 @@ use Exception;
 
 class BookmarkController extends Controller
 {
+
+    public function __construct()
+    {
+        if (Auth::user()->role_id !== 2) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403);
+        }
+    }
+
+
     public function addBookmark(Request $request)
     {
         // Validate the request
@@ -378,13 +391,6 @@ class BookmarkController extends Controller
      */
     public function import(Request $request)
     {
-        if (Auth::user()->role_id !== 2) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized access',
-                'status_code' => 403,
-            ], 403);
-        }
 
         $request->validate([
             'file' => 'required|mimes:html,json|max:2048',

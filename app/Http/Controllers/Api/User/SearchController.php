@@ -11,6 +11,18 @@ use Illuminate\Support\Facades\Auth;
 class SearchController extends Controller
 {
 
+    public function __construct()
+    {
+        if (Auth::user()->role_id !== 2) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403);
+        }
+    }
+
+
     /*
     * Date: 11-mar-25
     * Last Updated: 13-mar-25
@@ -296,13 +308,6 @@ class SearchController extends Controller
     */
     public function search_bookmark(Request $request)
     {
-        if (Auth::user()->role_id !== 2) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Unauthorized access',
-                'status_code' => 403,
-            ], 403);
-        }
 
         $query = Bookmark::query();
 
