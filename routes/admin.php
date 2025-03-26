@@ -24,4 +24,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::get('/getAllBookmarks', [BookmarkController::class, 'getAllBookmarks']);
     Route::post('/dashboard', [DashboardController::class, 'index']);
     Route::post('/six-months-user', [DashboardController::class, 'sixMonthsUser']);
+    Route::post('/six-months-bookmark', [DashboardController::class, 'sixMonthsBookmarks']);
 });

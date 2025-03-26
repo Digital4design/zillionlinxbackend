@@ -117,4 +117,44 @@ class DashboardController extends Controller
             'six_months_user' => $responseData,
         ], 200);
     }
+
+
+    /*
+    * Date: 26-Mar-2025
+    *
+    * This method allows show the sixMonthsBookmarks count:
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function sixMonthsBookmarks()
+    {
+        $months = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $months[Carbon::now()->subMonths($i)->format('Y-m')] = 0;
+        }
+
+        // Query to get user counts per month
+        $sixMonthsBookmark = Bookmark::where('created_at', '>=', Carbon::now()->subMonths(5)->startOfMonth()) // Ensure correct date range
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, COUNT(*) as count')
+            ->groupBy('month')
+            ->orderBy('month', 'asc')
+            ->pluck('count', 'month') // Convert to array
+            ->toArray();
+
+        // Merge actual counts into our predefined months
+        $finalCounts = array_merge($months, $sixMonthsBookmark);
+
+        // Convert to array of objects for JSON response
+        $responseData = [];
+        foreach ($finalCounts as $month => $count) {
+            $responseData[] = ['month' => $month, 'count' => $count];
+        }
+
+        // Return JSON response
+        return response()->json([
+            'status' => 'success',
+            'six_months_bookmark' => $responseData,
+        ], 200);
+    }
 }
