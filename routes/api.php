@@ -45,6 +45,9 @@ Route::get('/send-test-email', function () {
     }
 });
 
+Route::get('/auth/google/redirect', [AuthController::class, 'redirect']);
+Route::get('/auth/google/callback', [AuthController::class, 'callback']);
+
 Route::middleware('auth:sanctum')->group(function () {
 
     // Bookmark routes

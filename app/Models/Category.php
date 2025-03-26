@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 class Category extends Model
 {
     protected $fillable = ['title', 'slug', 'parent_id'];
-
+    protected $table = 'categories';
     // Relationship: A category may have subcategories
     public function subcategories()
     {
@@ -35,4 +35,3 @@ class Category extends Model
         });
     }
 }
-
