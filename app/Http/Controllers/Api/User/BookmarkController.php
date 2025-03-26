@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Spatie\Browsershot\Browsershot;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Bookmark;
 use App\Models\UserBookmark;
@@ -63,7 +64,6 @@ class BookmarkController extends Controller
                     $sub_cat_id = $cat_data->id;
                 }
             } else {
-
                 $sub_cat_id = $request->sub_category_id;
             }
             $fileName = $request->title . time() . '.png';
@@ -72,6 +72,11 @@ class BookmarkController extends Controller
                 ->timeout(120000)
                 ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
                 ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox', '--disable-http2', '--disable-site-isolation-trials'])
+                ->waitUntilNetworkIdle()
+                ->setScreenshotType('png')
+                ->setOption('fullPage', true)
+                ->setOption('scale', 2)
+                ->setOption('viewport', ['width' => 1920, 'height' => 1080])
                 ->save($filePath);
 
             $bookmark = Bookmark::create([
@@ -310,6 +315,12 @@ class BookmarkController extends Controller
             }
             $Bookmark = Bookmark::find($topLink->bookmark_id);
             if ($Bookmark) {
+                if ($Bookmark->image) {
+                    $imagePath = "public/{$Bookmark->icon_path}"; // Adjust the path based on storage
+                    if (Storage::exists($imagePath)) {
+                        Storage::delete($imagePath);
+                    }
+                }
                 $Bookmark->delete();
             }
 
@@ -437,5 +448,49 @@ class BookmarkController extends Controller
         }
 
         return $bookmarks;
+    }
+
+    /**
+     * Date: 26-Mar-2025
+     * Add a link to the bookmark.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function add_toplinks_bookmark($id)
+    {
+        try {
+            $updated = UserBookmark::where('bookmark_id', $id)->update(['add_to' => 'top_link']);
+
+            if ($updated) {
+                return response()->json(['message' => 'Bookmark added to top links successfully'], 200);
+            } else {
+                return response()->json(['error' => 'Bookmark not found or not updated'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred while updating the bookmark', 'details' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Date: 26-Mar-2025
+     * Remove a link to the bookmark.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function remove_toplinks_bookmark($id)
+    {
+        try {
+            $updated = UserBookmark::where('bookmark_id', $id)->update(['add_to' => 'NULL']);
+
+            if ($updated) {
+                return response()->json(['message' => 'Bookmark removed from top links successfully'], 200);
+            } else {
+                return response()->json(['error' => 'Bookmark not found or not updated'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred while updating the bookmark', 'details' => $e->getMessage()], 500);
+        }
     }
 }

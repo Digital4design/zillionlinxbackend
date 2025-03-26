@@ -18,7 +18,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/categories', [CategoryController::class, 'store']);
     Route::get('/categories/{id}', [CategoryController::class, 'show']);
     Route::post('/update-categories/{id}', [CategoryController::class, 'update']);
-    Route::delete('/categories/{id}', [CategoryController::class, 'destroy']);
+    Route::post('/delete/categories', [CategoryController::class, 'destroy']);
     Route::delete('/user/delete', [UserController::class, 'destroy']);
     Route::post('/user/update/{id}', [UserController::class, 'update']);
     Route::get('/getAllBookmarks', [BookmarkController::class, 'getAllBookmarks']);
