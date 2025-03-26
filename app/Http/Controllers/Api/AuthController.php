@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-
+use Laravel\Socialite\Facades\Socialite;
 
 
 
@@ -47,20 +47,6 @@ class AuthController extends Controller
             $user->role = $role;
             return success("Admin login successful", ['token' => $token, 'user' => $user]);
         }
-
-        // return success("Admin login successful", ['token' => $token, 'user' => $user]);
-        // return response()->json([
-        //     'message' => 'Admin login successful',
-        //     'token' => $token,
-        //     'user' => [
-        //         'id' => $user->id,
-        //         'name' => $user->first_name . ' ' . $user->last_name,
-        //         'email' => $user->email,
-        //         'role' => 'admin'
-        //     ]
-        // ], 200);
-
-
     }
 
     public function login(LoginRequest $request)
@@ -184,5 +170,45 @@ class AuthController extends Controller
         });
 
         return response()->json(['message' => 'Test email sent successfully!']);
+    }
+
+    public function redirect()
+    {
+        return Socialite::driver('google')->redirect()->getTargetUrl();
+    }
+
+    /**
+     * Handle Google callback and authenticate the user.
+     */
+    public function callback()
+    {
+        try {
+            $googleUser = Socialite::driver('google')->user();
+
+            // Check if the user already exists
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if (!$user) {
+                // Create a new user
+                $user = User::create([
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
+                    'provider' => 'google',
+                    'provider_id' => $googleUser->getId(),
+                    'password' => bcrypt(uniqid()), // Random password (not used)
+                ]);
+            }
+
+            // Generate Sanctum token
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'message' => 'Google login successful',
+                'token' => $token,
+                'user' => $user,
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Google authentication failed', 'details' => $e->getMessage()], 500);
+        }
     }
 }

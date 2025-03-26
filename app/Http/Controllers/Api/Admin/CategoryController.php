@@ -25,24 +25,28 @@ class CategoryController extends Controller
     {
         try {
             $parentId = $request->query('parent_id');
+            $searchTitle = $request->query('title');
+            $query = Category::query();
 
             if ($parentId) {
-                $categories = Category::where('parent_id', $parentId)->get();
-                if ($categories->isEmpty()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'No subcategories found for this parent_id.'
-                    ], 404);
-                }
+                $query->where('parent_id', $parentId);
             } else {
-                $categories = Category::whereNull('parent_id')->with('subcategories')->get();
+                $query->whereNull('parent_id')->with('subcategories');
+            }
 
-                if ($categories->isEmpty()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'No categories found.'
-                    ], 404);
-                }
+            if ($searchTitle) {
+
+                $query->where('title', 'like', "%$searchTitle%");
+            }
+
+            $categories = $query->get();
+            dd($parentId);
+
+            if ($categories->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No categories found.'
+                ], 404);
             }
 
             return response()->json([
@@ -57,6 +61,7 @@ class CategoryController extends Controller
             ], 500);
         }
     }
+
 
     // Store a new category
     public function store(Request $request)
