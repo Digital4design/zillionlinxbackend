@@ -117,14 +117,15 @@ class CategoryController extends Controller
     public function destroy(Request $request)
     {
         try {
-            $ids = $request->input('ids'); // Expecting an array or a single ID
+            $ids = $request->input('ids');
 
             if (is_array($ids)) {
-                // Delete multiple categories
-                $deleted = Category::whereIn('id', $ids)->delete();
+                $parentIds = Category::whereIn('parent_id', $ids)->pluck('id')->toArray();
+                $allIdsToDelete = array_merge($ids, $parentIds);
+                $deleted = Category::whereIn('id', $allIdsToDelete)->delete();
             } else {
-                // Delete single category
-                $deleted = Category::where('id', $ids)->delete();
+                $parentIds = Category::where('parent_id', $ids)->pluck('id')->toArray();
+                $deleted = Category::whereIn('id', array_merge([$ids], $parentIds))->delete();
             }
 
             if ($deleted) {
