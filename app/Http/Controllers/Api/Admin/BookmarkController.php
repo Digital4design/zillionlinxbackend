@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api\Admin;
 
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\UserBookmark;
 use App\Models\Bookmark;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+
+use Exception;
 
 class BookmarkController extends Controller
 {
@@ -88,7 +90,7 @@ class BookmarkController extends Controller
             $query = UserBookmark::with('bookmark', 'user')
                 ->when($search, function ($q) use ($search) {
                     return $q->whereHas('bookmark', function ($query) use ($search) {
-                        $query->where('website_url', 'LIKE', "%$search%");
+                        $query->where('title', 'LIKE', "%$search%");
                     });
                 })
                 ->when($categoryId, function ($q) use ($categoryId) {
@@ -163,6 +165,50 @@ class BookmarkController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to fetch bookmarks: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Date: 27-Mar-2025
+     * Delete Bookmark by ID
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy($id)
+    {
+        try {
+            $topLink = UserBookmark::find($id);
+
+            if (!$topLink) {
+                return response()->json([
+                    'status' => 404,
+                    'message' => 'Bookmark not found'
+                ], 404);
+            }
+            $Bookmark = Bookmark::find($topLink->bookmark_id);
+            if ($Bookmark) {
+                if ($Bookmark->image) {
+                    $imagePath = "public/{$Bookmark->icon_path}";
+                    if (Storage::exists($imagePath)) {
+                        Storage::delete($imagePath);
+                    }
+                }
+                $Bookmark->delete();
+            }
+
+            $topLink->delete();
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Bookmark removed successfully'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
             ], 500);
         }
     }
