@@ -25,7 +25,7 @@ class SearchController extends Controller
 
     /*
     * Date: 11-mar-25
-    * Last Updated: 13-mar-25
+    * Last Updated: 27-mar-25
     * Search for bookmarks based on title.
     *
     * This method allows searching bookmarks based on the following parameters:
@@ -60,6 +60,11 @@ class SearchController extends Controller
             $wikiStaticLink = "https://en.wikipedia.org/wiki/Special:Search?search=" . urlencode($request->title);
             $youtubeStaticLink = "https://www.youtube.com/results?search_query=" . urlencode($request->title);
             $ebayStaticLink = "https://www.ebay.com/sch/i.html?_nkw=" . urlencode($request->title);
+            $walmartStaticLink = "https://www.walmart.com/search/?query=" . urlencode($request->title);
+            $aliexpressStaticLink = "https://www.aliexpress.com/wholesale?SearchText=" . urlencode($request->title);
+            $etsyStaticLink = "https://www.etsy.com/search?q=" . urlencode($request->title);
+            $neweggStaticLink = "https://www.newegg.com/p/pl?d=" . urlencode($request->title);
+            $mercadolibreStaticLink = "https://www.mercadolibre.com/jm/search?search_type=nav&item_id=&q=" . urlencode($request->title);
         }
 
         // Return a search results
@@ -75,6 +80,11 @@ class SearchController extends Controller
                 'wikiStaticLink' => $wikiStaticLink,
                 'youtubeStaticLink' => $youtubeStaticLink,
                 'ebayStaticLink' => $ebayStaticLink,
+                'walmartStaticLink' => $walmartStaticLink,
+                'aliexpressStaticLink' => $aliexpressStaticLink,
+                'etsyStaticLink' => $etsyStaticLink,
+                'neweggStaticLink' => $neweggStaticLink,
+                'mercadolibreStaticLink' => $mercadolibreStaticLink,
             ],
         ]);
     }

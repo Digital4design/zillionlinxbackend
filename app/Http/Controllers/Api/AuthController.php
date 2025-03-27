@@ -176,7 +176,7 @@ class AuthController extends Controller
     {
         return Socialite::driver('google')->redirect()->getTargetUrl();
     }
-
+ 
     /**
      * Handle Google callback and authenticate the user.
      */
@@ -191,10 +191,9 @@ class AuthController extends Controller
             if (!$user) {
                 // Create a new user
                 $user = User::create([
-                    'name' => $googleUser->getName(),
+                    'first_name' => $googleUser->getName(),
                     'email' => $googleUser->getEmail(),
-                    'provider' => 'google',
-                    'provider_id' => $googleUser->getId(),
+                    'google_id' => $googleUser->getId(),
                     'password' => bcrypt(uniqid()), // Random password (not used)
                 ]);
             }
