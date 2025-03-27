@@ -417,12 +417,17 @@ class BookmarkController extends Controller
         }
 
         foreach ($bookmarks as $bookmark) {
-            $created = Bookmark::create([
-                'user_id' => Auth::id(),
-                'title' => $bookmark['title'],
-                'website_url' => $bookmark['url'],
-            ]);
+            $existingBookmark = Bookmark::where('website_url', $bookmark['url'])->first();
+
+            if (!$existingBookmark) {
+                Bookmark::create([
+                    'user_id' => Auth::id(),
+                    'title' => $bookmark['title'],
+                    'website_url' => $bookmark['url'],
+                ]);
+            }
         }
+
 
         if (!empty($bookmarks) && isset($created)) {
             return response()->json(['message' => 'Bookmarks imported successfully'], 200);
