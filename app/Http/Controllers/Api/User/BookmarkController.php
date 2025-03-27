@@ -428,11 +428,10 @@ class BookmarkController extends Controller
             }
         }
 
-
         if (!empty($bookmarks) && isset($created)) {
             return response()->json(['message' => 'Bookmarks imported successfully'], 200);
         } else {
-            return response()->json(['message' => 'No bookmarks were imported'], 400);
+            return response()->json(['message' => 'Duplicate bookmarks found'], 400);
         }
     }
 
@@ -487,7 +486,7 @@ class BookmarkController extends Controller
     public function remove_toplinks_bookmark($id)
     {
         try {
-            $updated = UserBookmark::where('bookmark_id', $id)->update(['add_to' => 'NULL']);
+            $updated = UserBookmark::where('bookmark_id', $id)->update(['add_to' => 'bookmark']);
 
             if ($updated) {
                 return response()->json(['message' => 'Bookmark removed from top links successfully'], 200);

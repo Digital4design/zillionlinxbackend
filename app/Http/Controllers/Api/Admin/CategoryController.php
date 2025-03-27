@@ -26,6 +26,7 @@ class CategoryController extends Controller
         try {
             $parentId = $request->query('parent_id');
             $search = $request->query('title'); // Get search query
+            $perPage = $request->query('per_page', 3); // Get per_page query, default 10
 
             $query = Category::query();
 
@@ -39,7 +40,7 @@ class CategoryController extends Controller
                 $query->where('title', 'LIKE', "%$search%"); // Apply search filter
             }
 
-            $categories = $query->get();
+            $categories = $query->paginate($perPage); // Apply pagination
 
             if ($categories->isEmpty()) {
                 return response()->json([
@@ -60,6 +61,7 @@ class CategoryController extends Controller
             ], 500);
         }
     }
+
 
 
     // Store a new category
