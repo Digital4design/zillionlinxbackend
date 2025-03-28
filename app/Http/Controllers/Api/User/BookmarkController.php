@@ -68,16 +68,18 @@ class BookmarkController extends Controller
             }
             $fileName = $request->title . time() . '.png';
             $filePath = storage_path("app/public/{$fileName}");
-            Browsershot::url($request->url)
-                ->timeout(120000)
+            $base64Image = Browsershot::url($request->url)
+                ->timeout(60000)
                 ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
-                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox', '--disable-http2', '--disable-site-isolation-trials'])
-                ->waitUntilNetworkIdle()
-                ->setScreenshotType('png')
-                ->setOption('fullPage', true)
-                ->setOption('scale', 2)
-                ->setOption('viewport', ['width' => 1920, 'height' => 1080])
-                ->save($filePath);
+                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
+                ->waitUntilFirstPaint()
+                ->setDelay(1000)
+                ->setOption('viewport', ['width' => 1280, 'height' => 720])
+                ->base64Screenshot();
+
+            $imageData = base64_decode($base64Image);
+            file_put_contents($filePath, $imageData);
+
 
             $bookmark = Bookmark::create([
                 'title' => $request->title,
