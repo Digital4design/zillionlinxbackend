@@ -71,7 +71,17 @@ class AuthController extends Controller
         } else {
             return error("Invalid login type");
         }
-        return $response;
+        if ($response instanceof \Illuminate\Http\JsonResponse) {
+            $responseData = $response->getData(true); // Convert JSON object to an array
+        } else {
+            $responseData = (array) $response;
+        }
+
+        // ✅ Append user data
+        $responseData['user'] = $user;
+
+        return response()->json($responseData);
+        // return $response;
     }
 
     public function register(RegisterRequest $request)
@@ -125,7 +135,7 @@ class AuthController extends Controller
         ]);
 
         // Generate frontend reset password link
-        $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+        $frontendUrl = env('FRONTEND_URL');
         $resetLink = "$frontendUrl/reset-password?token=$token&email=" . urlencode($request->email);
 
         // Send email
@@ -176,7 +186,7 @@ class AuthController extends Controller
     {
         return Socialite::driver('google')->redirect()->getTargetUrl();
     }
- 
+
     /**
      * Handle Google callback and authenticate the user.
      */
