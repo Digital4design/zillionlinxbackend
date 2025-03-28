@@ -180,25 +180,32 @@ class BookmarkController extends Controller
     {
 
         try {
-            $topLink = Bookmark::find($id);
+            $topLink = UserBookmark::find($id);
 
             if (!$topLink) {
                 return response()->json([
                     'status' => 404,
                     'message' => 'Bookmark not found'
                 ], 404);
-            } else {
-                if ($topLink->icon_path) {
-                    if (Storage::disk('public')->exists($topLink->icon_path)) {
-                        Storage::disk('public')->delete($topLink->icon_path);
+            }
+            $Bookmark = Bookmark::find($topLink->bookmark_id);
+            if ($Bookmark) {
+                if ($Bookmark->image) {
+                    $imagePath = "{$Bookmark->icon_path}"; // Adjust the path based on storage
+                    if (Storage::disk('public')->exists($imagePath)) {
+                        Storage::disk('public')->delete($imagePath);
                     }
                 }
-                $topLink->delete();
-                return response()->json([
-                    'status' => 200,
-                    'message' => 'Bookmark removed successfully'
-                ], 200);
+                $Bookmark->delete();
             }
+
+            $topLink->delete();
+
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Bookmark removed successfully'
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 500,

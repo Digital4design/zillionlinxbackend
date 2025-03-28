@@ -316,9 +316,9 @@ class BookmarkController extends Controller
             $Bookmark = Bookmark::find($topLink->bookmark_id);
             if ($Bookmark) {
                 if ($Bookmark->image) {
-                    $imagePath = "public/{$Bookmark->icon_path}"; // Adjust the path based on storage
-                    if (Storage::exists($imagePath)) {
-                        Storage::delete($imagePath);
+                    $imagePath = "{$Bookmark->icon_path}"; // Adjust the path based on storage
+                    if (Storage::disk('public')->exists($imagePath)) {
+                        Storage::disk('public')->delete($imagePath);
                     }
                 }
                 $Bookmark->delete();
@@ -420,10 +420,16 @@ class BookmarkController extends Controller
             $existingBookmark = Bookmark::where('website_url', $bookmark['url'])->first();
 
             if (!$existingBookmark) {
-                Bookmark::create([
+                $bookmark = Bookmark::create([
                     'user_id' => Auth::id(),
                     'title' => $bookmark['title'],
                     'website_url' => $bookmark['url'],
+                ]);
+
+                //dd($sub_cat_id);
+                UserBookmark::create([
+                    'bookmark_id' => $bookmark->id,
+                    'user_id' => Auth::id(),
                 ]);
             }
         }
