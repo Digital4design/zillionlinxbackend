@@ -26,7 +26,7 @@ class CategoryController extends Controller
         try {
             $parentId = $request->query('parent_id');
             $search = $request->query('title'); // Get search query
-            $perPage = $request->query('per_page', 3); // Get per_page query, default 10
+            $perPage = $request->query('per_page', 10); // Get per_page query, default 10
 
             $query = Category::query();
 
