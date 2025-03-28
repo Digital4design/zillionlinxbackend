@@ -178,6 +178,7 @@ class BookmarkController extends Controller
      */
     public function destroy($id)
     {
+
         try {
             $topLink = UserBookmark::find($id);
 
@@ -190,15 +191,16 @@ class BookmarkController extends Controller
             $Bookmark = Bookmark::find($topLink->bookmark_id);
             if ($Bookmark) {
                 if ($Bookmark->image) {
-                    $imagePath = "public/{$Bookmark->icon_path}";
-                    if (Storage::exists($imagePath)) {
-                        Storage::delete($imagePath);
+                    $imagePath = "{$Bookmark->icon_path}"; // Adjust the path based on storage
+                    if (Storage::disk('public')->exists($imagePath)) {
+                        Storage::disk('public')->delete($imagePath);
                     }
                 }
                 $Bookmark->delete();
             }
 
             $topLink->delete();
+
 
             return response()->json([
                 'status' => 200,
