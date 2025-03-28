@@ -318,21 +318,36 @@ class SearchController extends Controller
     */
     public function search_bookmark(Request $request)
     {
+        try {
+            $query = Bookmark::query();
 
-        $query = Bookmark::query();
+            if ($request->has('title')) {
+                $query->where('title', 'like', '%' . $request->title . '%');
+            }
 
-        if ($request->has('title')) {
-            $query->where('title', 'like', '%' . $request->title . '%');
+            $bookmarks = $query->select('website_url', 'icon_path', 'title')->get();
+
+            if ($bookmarks->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No bookmarks found for the given title.',
+                    'data' => []
+                ], 404);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Bookmarks retrieved successfully.',
+                'data' => [
+                    'bookmarks' => $bookmarks,
+                ],
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Something went wrong while fetching bookmarks.',
+                'message' => $e->getMessage() // Optional: Remove in production for security
+            ], 500);
         }
-
-        $bookmarks = $query->select('website_url', 'icon_path', 'title')->get();
-
-        // Return a search results
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'bookmarks' => $bookmarks,
-            ],
-        ]);
     }
 }
