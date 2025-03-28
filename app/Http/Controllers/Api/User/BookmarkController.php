@@ -73,7 +73,7 @@ class BookmarkController extends Controller
                 ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
                 ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->waitUntilFirstPaint()
-                ->setDelay(1000)
+                ->setDelay(3000)
                 ->setOption('viewport', ['width' => 1280, 'height' => 720])
                 ->base64Screenshot();
 
