@@ -220,4 +220,37 @@ class AuthController extends Controller
             return response()->json(['error' => 'Google authentication failed', 'details' => $e->getMessage()], 500);
         }
     }
+
+    /*
+    * Date: 28-Mar-2025
+    * Update User Data.
+    *
+    * This method allows updating a user based on the following parameter:
+    * - first_name, last_name, email, country
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function update(Request $request, $id)
+    {
+        if (Auth::user()->role_id !== 2) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized access',
+                'status_code' => 403,
+            ], 403);
+        }
+
+        try {
+            $user = User::findOrFail($id);
+            if ($user) {
+                $user->update($request->all());
+                return response()->json(['message' => 'User updated successfully!']);
+            } else {
+                return response()->json(['error' => 'User not found or could not be updated!'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'User not found or could not be updated!', 'message' => $e->getMessage()], 404);
+        }
+    }
 }

@@ -37,7 +37,7 @@ Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/send-test-email', function () {
     try {
-        Mail::to('kartik.d4d@gmail.com')->send(new MailNotify());
+        Mail::to('harmeetsngh.d4d@gmail.com')->send(new MailNotify());
         return response()->json(['message' => 'Email sent successfully.']);
     } catch (\Exception $e) {
         Log::error('Mail Error: ' . $e->getMessage());
@@ -67,7 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/import-bookmark', [BookmarkController::class, 'import']);
     Route::post('/add-toplink-bookmark/{id}', [BookmarkController::class, 'add_toplinks_bookmark']);
     Route::post('/remove-toplink-bookmark/{id}', [BookmarkController::class, 'remove_toplinks_bookmark']);
-
+    Route::post('/user/update/{id}', [AuthController::class, 'update']);
     // Test Email Route (only authenticated users)
 
 });

@@ -26,21 +26,21 @@ class CategoryController extends Controller
         try {
             $parentId = $request->query('parent_id');
             $search = $request->query('title'); // Get search query
-            $perPage = $request->query('per_page', 10); // Get per_page query, default 10
+            $perPage = $request->query('per_page', 20); // Get per_page query, default 20
 
-            $query = Category::query();
+            $query = Category::whereNull('user_id');
 
             if ($parentId) {
                 $query->where('parent_id', $parentId);
             } else {
-                $query->whereNull('parent_id')->with('subcategories');
+                $query->whereNull('parent_id')->with('adminsubcategories');
             }
 
             if ($search) {
-                $query->where('title', 'LIKE', "%$search%"); // Apply search filter
+                $query->where('title', 'LIKE', "%$search%");
             }
 
-            $categories = $query->paginate($perPage); // Apply pagination
+            $categories = $query->paginate($perPage);
 
             if ($categories->isEmpty()) {
                 return response()->json([
