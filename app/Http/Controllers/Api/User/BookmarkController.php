@@ -51,16 +51,17 @@ class BookmarkController extends Controller
                 ], 409);
             }
             if (isset($request->sub_category_name)) {
-                $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->first();
+                $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->where('user_id', Auth::id())->first();
 
                 if (empty($cat_data)) {
                     $category =  Category::create([
                         'title' => $request->sub_category_name,
                         'parent_id' => $request->category_id,
+                        'user_id' => Auth::id(),
                     ]);
                     $sub_cat_id = $category->id;
                 } else {
-                    $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->first();
+                    $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->where('user_id', Auth::id())->first();
                     $sub_cat_id = $cat_data->id;
                 }
             } else {

@@ -8,6 +8,7 @@ use App\Models\Bookmark;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Auth;
 
+
 class SearchController extends Controller
 {
 
@@ -53,18 +54,18 @@ class SearchController extends Controller
 
         if ($request->has('title')) {
             $googleResults = $this->searchGoogle($request->title);
-            $wikimediaResults = $this->searchWikimedia($request->title);
+            // $wikimediaResults = $this->searchWikimedia($request->title);
             $ebayResults = $this->searchEbay($request->title);
             $youtubeResults = $this->searchYouTube($request->title);
             $amazonStaticLink = $this->searchAmazon($request->title);
-            $wikiStaticLink = "https://en.wikipedia.org/wiki/Special:Search?search=" . urlencode($request->title);
+            // $wikiStaticLink = "https://en.wikipedia.org/wiki/Special:Search?search=" . urlencode($request->title);
             $youtubeStaticLink = "https://www.youtube.com/results?search_query=" . urlencode($request->title);
             $ebayStaticLink = "https://www.ebay.com/sch/i.html?_nkw=" . urlencode($request->title);
             $walmartStaticLink = "https://www.walmart.com/search/?query=" . urlencode($request->title);
             $aliexpressStaticLink = "https://www.aliexpress.com/wholesale?SearchText=" . urlencode($request->title);
             $etsyStaticLink = "https://www.etsy.com/search?q=" . urlencode($request->title);
             $neweggStaticLink = "https://www.newegg.com/p/pl?d=" . urlencode($request->title);
-            $mercadolibreStaticLink = "https://www.mercadolibre.com/jm/search?search_type=nav&item_id=&q=" . urlencode($request->title);
+            // $mercadolibreStaticLink = "https://www.mercadolibre.com/jm/search?search_type=nav&item_id=&q=" . urlencode($request->title);
         }
 
         // Return a search results
@@ -73,18 +74,18 @@ class SearchController extends Controller
             'data' => [
                 'bookmarks' => $bookmarks,
                 'google_search_results' => $googleResults,
-                'wikimedia_search_results' => $wikimediaResults,
+                // 'wikimedia_search_results' => $wikimediaResults,
                 'ebay_search_results' => $ebayResults,
                 'youtube_search_results' => $youtubeResults,
                 'amazonStaticLink' => $amazonStaticLink,
-                'wikiStaticLink' => $wikiStaticLink,
+                // 'wikiStaticLink' => $wikiStaticLink,
                 'youtubeStaticLink' => $youtubeStaticLink,
                 'ebayStaticLink' => $ebayStaticLink,
                 'walmartStaticLink' => $walmartStaticLink,
                 'aliexpressStaticLink' => $aliexpressStaticLink,
                 'etsyStaticLink' => $etsyStaticLink,
                 'neweggStaticLink' => $neweggStaticLink,
-                'mercadolibreStaticLink' => $mercadolibreStaticLink,
+                // 'mercadolibreStaticLink' => $mercadolibreStaticLink,
             ],
         ]);
     }
@@ -92,7 +93,7 @@ class SearchController extends Controller
     /*
     * Date: 11-mar-25
     * Search for data based on title.
-    *
+    * Updated on 31-mar-25
     * This method allows searching data from Google search api based on the following parameters:
     * - title
     *
@@ -105,7 +106,6 @@ class SearchController extends Controller
         $cx = 'c5b2f0643f4b54394';
 
         $client = new Client();
-
         $encodedTitle = urlencode($title);
 
         try {
@@ -114,24 +114,30 @@ class SearchController extends Controller
                     'key' => $apiKey,
                     'cx' => $cx,
                     'q' => $encodedTitle,
+                    'searchType' => 'image', // Fetch images
+                    'num' => 5, // Get multiple results
+                    'safe' => 'high' // Enable SafeSearch filter
                 ],
             ]);
 
             $googleSearchData = json_decode($response->getBody()->getContents(), true);
 
             $results = [];
-            if (isset($googleSearchData['items'])) {
+
+            if (!empty($googleSearchData['items'])) {
                 foreach ($googleSearchData['items'] as $item) {
                     $results[] = [
-                        'title' => $item['title'],
-                        'link' => $item['link'],
+                        'title'   => $item['title'],
+                        'link'    => $item['image']['contextLink'] ?? $item['link'], // Page link
                         'snippet' => $item['snippet'],
+                        'image'   => $item['link'] // Image link
                     ];
                 }
             }
 
-            return $results;
+            return response()->json($results);
         } catch (\Exception $e) {
+
 
             return response()->json([
                 'error' => 'Something went wrong',
@@ -151,46 +157,46 @@ class SearchController extends Controller
     * @param \Illuminate\Http\Request $request
     * @return \Illuminate\Http\JsonResponse
     */
-    private function searchWikimedia($title)
-    {
-        $client = new Client();
-        $encodedTitle = urlencode($title);
+    // private function searchWikimedia($title)
+    // {
+    //     $client = new Client();
+    //     $encodedTitle = urlencode($title);
 
-        try {
+    //     try {
 
-            $response = $client->get('https://en.wikipedia.org/w/api.php', [
-                'query' => [
-                    'action' => 'query',
-                    'format' => 'json',
-                    'list' => 'search',
-                    'srsearch' => $encodedTitle,
-                    'utf8' => 1,
-                ],
-            ]);
+    //         $response = $client->get('https://en.wikipedia.org/w/api.php', [
+    //             'query' => [
+    //                 'action' => 'query',
+    //                 'format' => 'json',
+    //                 'list' => 'search',
+    //                 'srsearch' => $encodedTitle,
+    //                 'utf8' => 1,
+    //             ],
+    //         ]);
 
-            $wikimediaData = json_decode($response->getBody()->getContents(), true);
+    //         $wikimediaData = json_decode($response->getBody()->getContents(), true);
 
-            $results = [];
-            if (isset($wikimediaData['query']['search'])) {
-                foreach ($wikimediaData['query']['search'] as $item) {
-                    $results[] = [
-                        'title' => $item['title'],
-                        'link' => 'https://en.wikipedia.org/?curid=' . $item['pageid'],
-                        'snippet' => strip_tags($item['snippet']),
-                    ];
-                }
-            }
+    //         $results = [];
+    //         if (isset($wikimediaData['query']['search'])) {
+    //             foreach ($wikimediaData['query']['search'] as $item) {
+    //                 $results[] = [
+    //                     'title' => $item['title'],
+    //                     'link' => 'https://en.wikipedia.org/?curid=' . $item['pageid'],
+    //                     'snippet' => strip_tags($item['snippet']),
+    //                 ];
+    //             }
+    //         }
 
-            return $results;
-        } catch (\Exception $e) {
+    //         return $results;
+    //     } catch (\Exception $e) {
 
-            return response()->json([
-                'error' => 'Something went wrong',
-                'status' => 500,
-                'message' => $e->getMessage()
-            ]);
-        }
-    }
+    //         return response()->json([
+    //             'error' => 'Something went wrong',
+    //             'status' => 500,
+    //             'message' => $e->getMessage()
+    //         ]);
+    //     }
+    // }
 
     /*
     * Date: 12-mar-25
@@ -320,9 +326,9 @@ class SearchController extends Controller
     {
         try {
             $query = Bookmark::query();
-
+            $userId = auth::id();
             if ($request->has('title')) {
-                $query->where('title', 'like', '%' . $request->title . '%');
+                $query->where('user_id', $userId)->where('title', 'like', '%' . $request->title . '%');
             }
 
             $bookmarks = $query->select('website_url', 'icon_path', 'title')->get();
