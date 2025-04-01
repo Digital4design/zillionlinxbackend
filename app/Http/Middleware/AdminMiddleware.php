@@ -18,8 +18,8 @@ class AdminMiddleware
         if (!Auth::check()) {
             return response()->json([
                 'message' => 'Unauthorized',
-                'status' => 'error', 
-                'status_code' => 401, 
+                'status' => 'error',
+                'status_code' => 401,
             ], 401);
         }
 
@@ -27,9 +27,9 @@ class AdminMiddleware
         if (Auth::user()->role == 1) {
             Log::warning('Unauthorized access - User does not have admin role.', ['role' => Auth::user()->role]);
             return response()->json([
-                
+
                 'message' => 'Access Denied. Admins only.',
-                'status' => 'error',  
+                'status' => 'error',
                 'status_code' => 403,
                 // 'role' => Auth::user()->role
             ], 403);
@@ -38,4 +38,3 @@ class AdminMiddleware
         return $next($request);
     }
 }
-

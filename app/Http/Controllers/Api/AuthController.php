@@ -16,8 +16,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
-
-
 class AuthController extends Controller
 {
     protected $authService;

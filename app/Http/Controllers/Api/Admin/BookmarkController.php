@@ -176,7 +176,7 @@ class BookmarkController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroyMultiple(Request $request)
+    public function destroy(Request $request)
     {
         try {
             $ids = $request->input('ids'); // Expecting an array of bookmark IDs
@@ -189,7 +189,7 @@ class BookmarkController extends Controller
             }
 
             // Find all user bookmarks with the provided IDs
-            $topLinks = UserBookmark::whereIn('id', $ids)->get();
+            $topLinks = Bookmark::whereIn('id', $ids)->get();
 
             if ($topLinks->isEmpty()) {
                 return response()->json([
@@ -203,9 +203,9 @@ class BookmarkController extends Controller
                 $Bookmark = Bookmark::find($topLink->bookmark_id);
                 if ($Bookmark) {
                     if ($Bookmark->image) {
-                        $imagePath = "{$Bookmark->icon_path}"; // Adjust the path based on storage
-                        if (Storage::disk('public')->exists($imagePath)) {
-                            Storage::disk('public')->delete($imagePath);
+                        //  $imagePath = "{$Bookmark->icon_path}"; // Adjust the path based on storage
+                        if (Storage::disk('public')->exists($Bookmark->image)) {
+                            Storage::disk('public')->delete($Bookmark->image);
                         }
                     }
                     $Bookmark->delete();
