@@ -11,6 +11,7 @@ use App\Mail\MailNotify;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
 
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/clear-cache', function () {
     try {
         // Execute cache clearing commands
@@ -33,7 +34,7 @@ Route::post('/clear-cache', function () {
 
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/register', [AuthController::class, 'register']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/auth/google/redirect', [AuthController::class, 'redirect']);
 Route::get('/auth/google/callback', [AuthController::class, 'callback']);
@@ -47,7 +48,6 @@ Route::get('/send-test-email', function () {
         return response()->json(['message' => 'Mail sending failed.', 'error' => $e->getMessage()], 500);
     }
 });
-
 
 
 Route::middleware('auth:sanctum')->group(function () {
