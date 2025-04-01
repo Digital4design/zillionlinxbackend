@@ -26,4 +26,5 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/six-months-user', [DashboardController::class, 'sixMonthsUser']);
     Route::post('/six-months-bookmark', [DashboardController::class, 'sixMonthsBookmarks']);
     Route::post('/delete-Bookmarks/{id}', [BookmarkController::class, 'destroy']);
+    Route::post('/categories/reorder', [CategoryController::class, 'reorderCategory']);
 });

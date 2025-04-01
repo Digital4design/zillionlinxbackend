@@ -176,35 +176,48 @@ class BookmarkController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function destroy($id)
+    public function destroyMultiple(Request $request)
     {
-
         try {
-            $topLink = UserBookmark::find($id);
+            $ids = $request->input('ids'); // Expecting an array of bookmark IDs
 
-            if (!$topLink) {
+            if (empty($ids)) {
+                return response()->json([
+                    'status' => 400,
+                    'message' => 'No IDs provided'
+                ], 400);
+            }
+
+            // Find all user bookmarks with the provided IDs
+            $topLinks = UserBookmark::whereIn('id', $ids)->get();
+
+            if ($topLinks->isEmpty()) {
                 return response()->json([
                     'status' => 404,
-                    'message' => 'Bookmark not found'
+                    'message' => 'No bookmarks found for the given IDs'
                 ], 404);
             }
-            $Bookmark = Bookmark::find($topLink->bookmark_id);
-            if ($Bookmark) {
-                if ($Bookmark->image) {
-                    $imagePath = "{$Bookmark->icon_path}"; // Adjust the path based on storage
-                    if (Storage::disk('public')->exists($imagePath)) {
-                        Storage::disk('public')->delete($imagePath);
+
+            foreach ($topLinks as $topLink) {
+                // Delete associated Bookmark if it exists
+                $Bookmark = Bookmark::find($topLink->bookmark_id);
+                if ($Bookmark) {
+                    if ($Bookmark->image) {
+                        $imagePath = "{$Bookmark->icon_path}"; // Adjust the path based on storage
+                        if (Storage::disk('public')->exists($imagePath)) {
+                            Storage::disk('public')->delete($imagePath);
+                        }
                     }
+                    $Bookmark->delete();
                 }
-                $Bookmark->delete();
+
+                // Delete the user bookmark
+                $topLink->delete();
             }
-
-            $topLink->delete();
-
 
             return response()->json([
                 'status' => 200,
-                'message' => 'Bookmark removed successfully'
+                'message' => 'Bookmarks removed successfully'
             ], 200);
         } catch (Exception $e) {
             return response()->json([

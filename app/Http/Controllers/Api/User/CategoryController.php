@@ -34,20 +34,38 @@ class CategoryController extends Controller
                     ], 404);
                 }
             } else {
-                $categories = Category::whereNull('parent_id')->with('subcategories')->get();
+                $userId = Auth::id(); // Get the logged-in user's ID
 
-                if ($categories->isEmpty()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'No categories found.'
-                    ], 404);
-                }
+                $categories = Category::select('categories.id', 'categories.user_id', 'categories.title', 'categories.slug', 'categories.parent_id', 'categories.position', 'categories.created_at', 'categories.updated_at')
+                    ->whereNull('categories.parent_id')  // Only top-level categories
+                    ->leftJoin('categories as subcategories', function ($join) use ($userId) {
+                        $join->on('categories.id', '=', 'subcategories.parent_id')
+                            ->where(function ($q) use ($userId) {
+                                $q->whereNull('subcategories.user_id')
+                                    ->orWhere('subcategories.user_id', $userId);
+                            });
+                    })
+                    ->get()
+                    ->map(function ($category) {
+                        $category->subcategories = Category::where('parent_id', $category->id)
+                            ->where(function ($q) {
+                                $q->whereNull('user_id')
+                                    ->orWhere('user_id', Auth::id());
+                            })
+                            ->get();
+                        return $category;
+                    });
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $categories
+                ]);
             }
 
             return response()->json([
                 'success' => true,
                 'data' => $categories
-            ], 200);
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,

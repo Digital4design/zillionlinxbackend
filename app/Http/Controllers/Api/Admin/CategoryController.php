@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+use Exception;
 
 class CategoryController extends Controller
 {
@@ -28,7 +29,7 @@ class CategoryController extends Controller
             $search = $request->query('title'); // Get search query
             $perPage = $request->query('per_page', 20); // Get per_page query, default 20
 
-            $query = Category::whereNull('user_id');
+            $query = Category::whereNull('user_id')->orderBy('position', 'asc');
 
             if ($parentId) {
                 $query->where('parent_id', $parentId);
@@ -141,6 +142,42 @@ class CategoryController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred!', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /*
+    * Date: 31-Mar-2025
+    * reorderCategory.
+    *
+    * This method allows reorder Categories based on the following parameter:
+    * - ID
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function reorderCategory(Request $request)
+    {
+        try {
+            $order = $request->input('order'); // Array of IDs in new order
+
+            if (!$order || !is_array($order)) {
+                return response()->json(['status' => 400, 'message' => 'Invalid order data'], 400);
+            }
+
+            foreach ($order as $index => $id) {
+                Category::where('id', $id)->update(['position' => $index + 1]);
+            }
+
+            return response()->json([
+                'status' => 200,
+                'message' => 'Category reordered successfully'
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 500,
+                'error' => 'Something went wrong',
+                'message' => $e->getMessage()
+            ], 500);
         }
     }
 }
