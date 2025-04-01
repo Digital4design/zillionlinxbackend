@@ -95,7 +95,7 @@ class SearchController extends Controller
     /*
     * Date: 11-mar-25
     * Search for data based on title.
-    * Updated on 31-mar-25
+    * Updated on 1-apr-25
     * This method allows searching data from Google search api based on the following parameters:
     * - title
     *
@@ -116,9 +116,8 @@ class SearchController extends Controller
                     'key' => $apiKey,
                     'cx' => $cx,
                     'q' => $encodedTitle,
-                    'searchType' => 'image', // Fetch images
-                    'num' => 5, // Get multiple results
-                    'safe' => 'high' // Enable SafeSearch filter
+                    'num' => 10, // Get multiple results
+                    'safe' => 'medium'
                 ],
             ]);
 

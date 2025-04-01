@@ -74,7 +74,7 @@ class BookmarkController extends Controller
                 ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
                 ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                 ->waitUntilFirstPaint()
-                ->setDelay(3000)
+                ->setDelay(1000)
                 ->setOption('viewport', ['width' => 1280, 'height' => 720])
                 ->base64Screenshot();
 
@@ -205,7 +205,16 @@ class BookmarkController extends Controller
 
 
 
-
+    /*
+        * Updated: 1-apr-25
+        * Fetch Bookmark.
+        *
+        * This method allows searching Bookmark from database.:
+        * - category_id
+        * - sub_category_id
+        * @param \Illuminate\Http\Request $request
+        * @return \Illuminate\Http\JsonResponse
+    */
     public function getBookmarks(Request $request)
     {
         $validated = $request->validate([
