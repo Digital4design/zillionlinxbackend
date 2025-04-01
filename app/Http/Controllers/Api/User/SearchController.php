@@ -65,6 +65,7 @@ class SearchController extends Controller
             $aliexpressStaticLink = "https://www.aliexpress.com/wholesale?SearchText=" . urlencode($request->title);
             $etsyStaticLink = "https://www.etsy.com/search?q=" . urlencode($request->title);
             $neweggStaticLink = "https://www.newegg.com/p/pl?d=" . urlencode($request->title);
+            $googleImagesURL = "https://www.google.com/search?tbm=isch&q=" . urlencode($request->title);
             // $mercadolibreStaticLink = "https://www.mercadolibre.com/jm/search?search_type=nav&item_id=&q=" . urlencode($request->title);
         }
 
@@ -85,6 +86,7 @@ class SearchController extends Controller
                 'aliexpressStaticLink' => $aliexpressStaticLink,
                 'etsyStaticLink' => $etsyStaticLink,
                 'neweggStaticLink' => $neweggStaticLink,
+                'googleImagesURL' => $googleImagesURL,
                 // 'mercadolibreStaticLink' => $mercadolibreStaticLink,
             ],
         ]);
