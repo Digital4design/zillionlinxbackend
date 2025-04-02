@@ -198,14 +198,18 @@ class BookmarkController extends Controller
                 ], 404);
             }
 
-            foreach ($topLinks as $topLink) {
+
+            foreach ($topLinks as $key => $topLink) {
+                // dd($topLink);
                 // Delete associated Bookmark if it exists
-                $Bookmark = Bookmark::find($topLink->bookmark_id);
+                $Bookmark = Bookmark::find($topLink->id);
+
                 if ($Bookmark) {
-                    if ($Bookmark->image) {
+
+                    if ($Bookmark->icon_path) {
                         //  $imagePath = "{$Bookmark->icon_path}"; // Adjust the path based on storage
-                        if (Storage::disk('public')->exists($Bookmark->image)) {
-                            Storage::disk('public')->delete($Bookmark->image);
+                        if (Storage::disk('public')->exists($Bookmark->icon_path)) {
+                            Storage::disk('public')->delete($Bookmark->icon_path);
                         }
                     }
                     $Bookmark->delete();

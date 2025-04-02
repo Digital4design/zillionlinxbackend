@@ -27,6 +27,26 @@ class AuthController extends Controller
 
     public function adminLogin(Request $request)
     {
+        // $request->validate([
+        //     'email' => 'required|email',
+        //     'password' => 'required|min:6'
+        // ]);
+
+        // $user = User::where('email', $request->email)->first();
+
+        // if (!$user || !Hash::check($request->password, $user->password) || $user->role_id != 1) {
+        //     return response()->json(['message' => 'Invalid admin credentials'], 401);
+        // }
+
+        // $token = $user->createToken('admin_token')->plainTextToken;
+        // if ($user) {
+        //     $role = $user->role_id === 1 ? 'admin' : 'user';
+
+        //     $user->role = $role;
+        //     return success("Admin login successful", ['token' => $token, 'user' => $user]);
+        // }
+
+
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6'
@@ -35,16 +55,43 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password) || $user->role_id != 1) {
-            return response()->json(['message' => 'Invalid admin credentials'], 401);
+            return error('Invalid admin credentials', 401);
         }
 
         $token = $user->createToken('admin_token')->plainTextToken;
-        if ($user) {
-            $role = $user->role_id === 1 ? 'admin' : 'user';
 
-            $user->role = $role;
-            return success("Admin login successful", ['token' => $token, 'user' => $user]);
-        }
+        $userData = [
+            'id' => $user->id,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'email' => $user->email,
+            'google_id' => $user->google_id,
+            'country' => $user->country,
+            'terms_condition' => $user->terms_condition,
+            'email_verified_at' => $user->email_verified_at,
+            'role_id' => $user->role_id,
+            'provider' => $user->provider,
+            'provider_id' => $user->provider_id,
+            'provider_token' => $user->provider_token,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at
+        ];
+
+        $responseData = [
+            'success' => true,
+            'message' => 'Admin login successful',
+            'data' => [
+                'token' => $token,
+                'user' => [
+                    'name' => "{$user->first_name} {$user->last_name}",
+                    'role' => 'admin',
+                    'email' => $user->email
+                ]
+            ],
+            'user' => $userData
+        ];
+
+        return response()->json($responseData);
     }
 
     public function login(LoginRequest $request)
@@ -75,7 +122,6 @@ class AuthController extends Controller
             $responseData = (array) $response;
         }
 
-        // ✅ Append user data
         $responseData['user'] = $user;
 
         return response()->json($responseData);
