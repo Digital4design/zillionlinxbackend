@@ -265,6 +265,8 @@ class BookmarkController extends Controller
 
     public function topLinks(Request $request)
     {
+
+
         try {
             $userId = auth::id(); // Get authenticated user ID
 

@@ -9,6 +9,8 @@ use App\Services\AuthService;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordMail;
+use App\Models\Bookmark;
+use App\Models\UserBookmark;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -94,39 +96,96 @@ class AuthController extends Controller
         return response()->json($responseData);
     }
 
+    // public function login(LoginRequest $request)
+    // {
+    //     $type = $request->input('type');
+
+    //     if ($type === 'google') {
+    //         $response = $this->authService->googleLogin($request->input('provider_token'));
+    //     } elseif ($type === 'email') {
+    //         if ($request->input('type') === 'email') {
+    //             $email = $request->input('email');
+    //             $user = User::where('email', $email)->first();
+
+    //             if ($user && $user->password === null) {
+    //                 return error('You have previously signed in with Google. Please use Google to log in or reset your password.');
+    //             }
+    //         }
+    //         $response = $this->authService->emailLogin(
+    //             $request->input('email'),
+    //             $request->input('password')
+    //         );
+    //     } else {
+    //         return error("Invalid login type");
+    //     }
+    //     if ($response instanceof \Illuminate\Http\JsonResponse) {
+    //         $responseData = $response->getData(true); // Convert JSON object to an array
+    //     } else {
+    //         $responseData = (array) $response;
+    //     }
+
+    //     $responseData['user'] = $user;
+
+    //     return response()->json($responseData);
+    //     // return $response;
+    // }
+
     public function login(LoginRequest $request)
     {
         $type = $request->input('type');
+        $user = null; // Initialize user variable
 
         if ($type === 'google') {
             $response = $this->authService->googleLogin($request->input('provider_token'));
-        } elseif ($type === 'email') {
-            if ($request->input('type') === 'email') {
-                $email = $request->input('email');
-                $user = User::where('email', $email)->first();
 
-                if ($user && $user->password === null) {
-                    return error('You have previously signed in with Google. Please use Google to log in or reset your password.');
+            if ($response instanceof \Illuminate\Http\JsonResponse && $response->getStatusCode() === 200) {
+                $responseData = $response->getData(true);
+                if (!empty($responseData['status']) && $responseData['status'] === 'success') {
+                    $user = User::where('email', $responseData['data']['user']['email'] ?? null)->first();
                 }
             }
+        } elseif ($type === 'email') {
+            $email = $request->input('email');
+            $user = User::where('email', $email)->first();
+
+            if ($user && $user->password === null) {
+                return error('You have previously signed in with Google. Please use Google to log in or reset your password.');
+            }
+
             $response = $this->authService->emailLogin(
                 $request->input('email'),
                 $request->input('password')
             );
+
+            if ($response instanceof \Illuminate\Http\JsonResponse && $response->getStatusCode() === 200) {
+                $user = User::where('email', $email)->first();
+            }
         } else {
             return error("Invalid login type");
         }
+
+        // Convert response to an array
         if ($response instanceof \Illuminate\Http\JsonResponse) {
-            $responseData = $response->getData(true); // Convert JSON object to an array
+            $responseData = $response->getData(true);
         } else {
             $responseData = (array) $response;
         }
 
-        $responseData['user'] = $user;
+        // Append full user details at the root level
+        if (!empty($responseData['status']) && $responseData['status'] === 'success' && $user) {
+            return response()->json([
+                'success' => true,
+                'message' => $responseData['message'] ?? 'Login successful',
+                'data' => $responseData['data'],
+                'user' => $user, // Include full user details here
+            ]);
+        }
 
         return response()->json($responseData);
-        // return $response;
     }
+
+
+
 
     public function register(RegisterRequest $request)
     {
@@ -146,11 +205,47 @@ class AuthController extends Controller
                 // 'last_login_at' => now(),
                 // 'role_id' => 2,  // You can adjust the role as needed
             ]);
+
+            $BookmarkData = Bookmark::join('user_bookmarks', 'user_bookmarks.bookmark_id', '=', 'bookmarks.id')
+                ->where('bookmarks.default', 'yes')
+                ->select(
+                    'bookmarks.title',
+                    'bookmarks.website_url',
+                    'bookmarks.icon_path',
+                    'user_bookmarks.category_id',
+                    'user_bookmarks.sub_category_id',
+                    'user_bookmarks.add_to',
+                    'user_bookmarks.pinned'
+                )
+                ->get();
+
+            foreach ($BookmarkData as $getData) {
+                $bookmarkCreated =  Bookmark::create([
+                    'title' => $getData->title,
+                    'website_url' => $getData->website_url,
+                    'icon_path' => $getData->icon_path,
+                    'user_id' => $data->id,
+
+                ]);
+                UserBookmark::create([
+                    'bookmark_id' => $bookmarkCreated->id,
+                    'category_id' => $getData->category_id,
+                    'sub_category_id' => $getData->sub_category_id,
+                    'add_to' => $getData->add_to,
+                    'pinned' => $getData->pinned,
+                    'user_id' => $data->id,
+                ]);
+            }
+
+
             Auth::login($data);
             $user = Auth::user();
 
             $token = $user->createToken('auth_token')->plainTextToken;
             $fetch = ["name" => $user->first_name, "display_name" => $user->display_name];
+
+
+
 
             return success("Login successful", ['token' => $token, 'user' => $fetch]);
         } catch (\Exception $ex) {
