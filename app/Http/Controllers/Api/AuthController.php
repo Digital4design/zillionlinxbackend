@@ -62,23 +62,6 @@ class AuthController extends Controller
 
         $token = $user->createToken('admin_token')->plainTextToken;
 
-        $userData = [
-            'id' => $user->id,
-            'first_name' => $user->first_name,
-            'last_name' => $user->last_name,
-            'email' => $user->email,
-            'google_id' => $user->google_id,
-            'country' => $user->country,
-            'terms_condition' => $user->terms_condition,
-            'email_verified_at' => $user->email_verified_at,
-            'role_id' => $user->role_id,
-            'provider' => $user->provider,
-            'provider_id' => $user->provider_id,
-            'provider_token' => $user->provider_token,
-            'created_at' => $user->created_at,
-            'updated_at' => $user->updated_at
-        ];
-
         $responseData = [
             'success' => true,
             'message' => 'Admin login successful',
@@ -87,10 +70,15 @@ class AuthController extends Controller
                 'user' => [
                     'name' => "{$user->first_name} {$user->last_name}",
                     'role' => 'admin',
-                    'email' => $user->email
+                    'id' => $user->id,
+                    'email' => $user->email,
+                    'first_name' => $user->first_name,
+                    'last_name' => $user->last_name,
+                    'country' => $user->country,
+                    'role_id' => $user->role_id,
                 ]
             ],
-            'user' => $userData
+
         ];
 
         return response()->json($responseData);
@@ -136,12 +124,17 @@ class AuthController extends Controller
         $user = null; // Initialize user variable
 
         if ($type === 'google') {
-            $response = $this->authService->googleLogin($request->input('provider_token'));
+            $response = $this->authService->googleLogin($request->input('google_token'));
 
             if ($response instanceof \Illuminate\Http\JsonResponse && $response->getStatusCode() === 200) {
                 $responseData = $response->getData(true);
+
                 if (!empty($responseData['status']) && $responseData['status'] === 'success') {
-                    $user = User::where('email', $responseData['data']['user']['email'] ?? null)->first();
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Logged in Successfully!',
+                        'data' => $responseData['data']
+                    ]);
                 }
             }
         } elseif ($type === 'email') {
