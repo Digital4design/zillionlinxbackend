@@ -240,7 +240,7 @@ class AuthController extends Controller
 
 
 
-            return success("Login successful", ['token' => $token, 'user' => $fetch]);
+            return success("Register successful", ['token' => $token, 'user' => $fetch]);
         } catch (\Exception $ex) {
             return error($ex->getMessage());
         }
