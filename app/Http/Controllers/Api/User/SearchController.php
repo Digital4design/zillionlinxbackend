@@ -337,7 +337,7 @@ class SearchController extends Controller
             if ($bookmarks->isEmpty()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No bookmarks found for the given title.',
+                    'error' => 'No bookmarks found for the given title.',
                     'data' => []
                 ]);
             }
