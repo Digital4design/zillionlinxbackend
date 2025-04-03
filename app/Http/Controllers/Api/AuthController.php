@@ -255,6 +255,10 @@ class AuthController extends Controller
         // Get the user
         $user = User::where('email', $request->email)->first();
 
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
         // Generate a secure token
         $token = Str::random(64); // More secure
 
