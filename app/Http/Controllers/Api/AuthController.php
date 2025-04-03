@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Stevebauman\Location\Facades\Location;
 
 class AuthController extends Controller
 {
@@ -29,25 +30,6 @@ class AuthController extends Controller
 
     public function adminLogin(Request $request)
     {
-        // $request->validate([
-        //     'email' => 'required|email',
-        //     'password' => 'required|min:6'
-        // ]);
-
-        // $user = User::where('email', $request->email)->first();
-
-        // if (!$user || !Hash::check($request->password, $user->password) || $user->role_id != 1) {
-        //     return response()->json(['message' => 'Invalid admin credentials'], 401);
-        // }
-
-        // $token = $user->createToken('admin_token')->plainTextToken;
-        // if ($user) {
-        //     $role = $user->role_id === 1 ? 'admin' : 'user';
-
-        //     $user->role = $role;
-        //     return success("Admin login successful", ['token' => $token, 'user' => $user]);
-        // }
-
 
         $request->validate([
             'email' => 'required|email',
@@ -84,39 +66,6 @@ class AuthController extends Controller
         return response()->json($responseData);
     }
 
-    // public function login(LoginRequest $request)
-    // {
-    //     $type = $request->input('type');
-
-    //     if ($type === 'google') {
-    //         $response = $this->authService->googleLogin($request->input('provider_token'));
-    //     } elseif ($type === 'email') {
-    //         if ($request->input('type') === 'email') {
-    //             $email = $request->input('email');
-    //             $user = User::where('email', $email)->first();
-
-    //             if ($user && $user->password === null) {
-    //                 return error('You have previously signed in with Google. Please use Google to log in or reset your password.');
-    //             }
-    //         }
-    //         $response = $this->authService->emailLogin(
-    //             $request->input('email'),
-    //             $request->input('password')
-    //         );
-    //     } else {
-    //         return error("Invalid login type");
-    //     }
-    //     if ($response instanceof \Illuminate\Http\JsonResponse) {
-    //         $responseData = $response->getData(true); // Convert JSON object to an array
-    //     } else {
-    //         $responseData = (array) $response;
-    //     }
-
-    //     $responseData['user'] = $user;
-
-    //     return response()->json($responseData);
-    //     // return $response;
-    // }
 
     public function login(LoginRequest $request)
     {
@@ -164,7 +113,16 @@ class AuthController extends Controller
             $responseData = (array) $response;
         }
 
-        // Append full user details at the root level
+        $ip = request()->ip();
+        $location = Location::get($ip);
+
+        $timezone = $location && $location->timezone ? $location->timezone : 'UTC';
+
+        $lastLoginTime = Carbon::now($timezone);
+        User::where('email', $request->input('email'))
+            ->update(['last_login_at' =>  $lastLoginTime]);
+
+
         if (!empty($responseData['status']) && $responseData['status'] === 'success' && $user) {
             return response()->json([
                 'success' => true,
@@ -195,7 +153,7 @@ class AuthController extends Controller
                 // 'display_name' => $validated['display_name'],
                 'password' => Hash::make($validated['password']),
                 'email_verified_at' => now(),
-                // 'last_login_at' => now(),
+                'provider' => 'email',
                 // 'role_id' => 2,  // You can adjust the role as needed
             ]);
 

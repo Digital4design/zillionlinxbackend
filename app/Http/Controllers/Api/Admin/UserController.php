@@ -30,7 +30,8 @@ class UserController extends Controller
     {
         try {
 
-            $query = User::where('role_id', 2);
+            $query = User::where('role_id', 2)
+                ->withcount('totalBookmarks');
 
             if ($request->filled('search')) {
                 $search = $request->input('search');
@@ -43,10 +44,18 @@ class UserController extends Controller
 
             $users = $query->orderBy('created_at', 'desc')->paginate(10);
 
-            return response()->json([
-                'status' => 'success',
-                'data' => $users,
-            ], 200);
+            if ($users->isEmpty()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No users found',
+                    'status_code' => 404,
+                ], 404);
+            } else {
+                return response()->json([
+                    'status' => 'success',
+                    'data' => $users,
+                ], 200);
+            }
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Something went wrong. Please try again later.',
