@@ -377,7 +377,10 @@ class AuthController extends Controller
             $user = User::findOrFail($id);
             if ($user) {
                 $user->update($request->all());
-                return response()->json(['message' => 'User updated successfully!']);
+                return response()->json([
+                    'message' => 'User updated successfully!',
+                    'user' => $user->fresh(),
+                ]);
             } else {
                 return response()->json(['error' => 'User not found or could not be updated!'], 404);
             }
