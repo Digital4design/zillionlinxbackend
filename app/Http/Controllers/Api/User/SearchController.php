@@ -339,7 +339,7 @@ class SearchController extends Controller
                     'success' => false,
                     'message' => 'No bookmarks found for the given title.',
                     'data' => []
-                ], 404);
+                ]);
             }
 
             return response()->json([
