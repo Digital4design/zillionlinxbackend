@@ -114,8 +114,9 @@ class AuthService
                     'email' => $googleUser->email,
                     'google_id' => $googleUser->id,
                     'provider' => 'google',
+                    'terms_condition' => true,
                     'email_verified_at' => now(),
-                    'country' => 'Unknown', // Update with actual data if available
+                    'country' => $googleUser->country ?? NULL, // Update with actual data if available
                 ]);
 
                 $token = $newUser->createToken('auth_token')->plainTextToken;
