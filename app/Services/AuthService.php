@@ -6,6 +6,8 @@ use App\Repositories\UserRepository;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
+use App\Models\Bookmark;
+use App\Models\UserBookmark;
 
 class AuthService
 {
@@ -37,46 +39,11 @@ class AuthService
         return error("Invalid credentials");
     }
 
-    // public function googleLogin(string $googleToken)
-    // {
-    //     try {
-    //         $user = Socialite::driver('google')->stateless()->userFromToken($googleToken);
-
-    //         $existingUser = User::where('email', $user->email)->first();
-    //         $data = [];
-    //         if ($existingUser) {
-
-    //             $token = $existingUser->createToken('auth_token')->plainTextToken;
-
-    //             $data['authToken'] = $token;
-    //             $data['user'] = $existingUser->first_name . " " . $existingUser->last_name;
-    //         } else {
-    //             $newUser = User::create([
-    //                 'name' => $user->name,
-    //                 'email' => $user->email,
-    //                 'provider' => 'google',
-    //                 'provider_id' => $user->id,
-
-    //                 'email_verified_at' => now(),
-
-    //             ]);
-    //             $token = $newUser->createToken('auth_token')->plainTextToken;
-    //             $data['authToken'] = $token;
-    //             $data['name'] = $newUser->first_name . " " . $newUser->last_name;
-    //             // $data['display_name'] = $newUser->display_name;
-    //         }
-
-    //         return success("Logged in Successfully!", ['token' => $token, 'user' => $data]);
-    //     } catch (\Exception $e) {
-    //         return error("Invalid token or Google authentication failed.", ["error_msg" => $e->getMessage()]);
-    //     }
-    // }
 
     public function googleLogin(string $googleToken)
     {
         try {
             $googleUser = Socialite::driver('google')->stateless()->userFromToken($googleToken);
-
             // Extract first name and last name
             $fullName = explode(' ', $googleUser->name, 2);
             $firstName = $fullName[0] ?? null;
@@ -101,14 +68,13 @@ class AuthService
                         'country' => $existingUser->country,
                         'authToken' => $token,
                         'role' => "user",
-                        'user' => $existingUser->name,
                         'email' => $existingUser->email,
                     ]
                 ]);
             } else {
                 // Create a new user
                 $newUser = User::create([
-                    'name' => $googleUser->name,
+
                     'first_name' => $firstName,
                     'last_name' => $lastName,
                     'email' => $googleUser->email,
@@ -116,8 +82,39 @@ class AuthService
                     'provider' => 'google',
                     'terms_condition' => true,
                     'email_verified_at' => now(),
-                    'country' => $googleUser->country ?? NULL, // Update with actual data if available
+                    'country' => $googleUser->country ?? NULL,
                 ]);
+                // Create default bookmarks for the new user
+                $BookmarkData = Bookmark::join('user_bookmarks', 'user_bookmarks.bookmark_id', '=', 'bookmarks.id')
+                    ->where('bookmarks.default', 'yes')
+                    ->select(
+                        'bookmarks.title',
+                        'bookmarks.website_url',
+                        'bookmarks.icon_path',
+                        'user_bookmarks.category_id',
+                        'user_bookmarks.sub_category_id',
+                        'user_bookmarks.add_to',
+                        'user_bookmarks.pinned'
+                    )
+                    ->get();
+
+                foreach ($BookmarkData as $getData) {
+                    $bookmarkCreated =  Bookmark::create([
+                        'title' => $getData->title,
+                        'website_url' => $getData->website_url,
+                        'icon_path' => $getData->icon_path,
+                        'user_id' => $newUser->id,
+
+                    ]);
+                    UserBookmark::create([
+                        'bookmark_id' => $bookmarkCreated->id,
+                        'category_id' => $getData->category_id,
+                        'sub_category_id' => $getData->sub_category_id,
+                        'add_to' => $getData->add_to,
+                        'pinned' => $getData->pinned,
+                        'user_id' => $newUser->id,
+                    ]);
+                }
 
                 $token = $newUser->createToken('auth_token')->plainTextToken;
                 return success("Logged in Successfully!", [

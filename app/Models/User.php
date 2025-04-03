@@ -25,7 +25,10 @@ class User extends Authenticatable
         'password',
         'email_verified_at',
         'country',
-        'terms_condition'
+        'terms_condition',
+        'google_id',
+        'provider',
+        'last_login_at',
     ];
 
     /**
@@ -49,5 +52,10 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function totalBookmarks()
+    {
+        return $this->hasMany(Bookmark::class); // Adjust model name if different
     }
 }
