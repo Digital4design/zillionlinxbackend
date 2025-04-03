@@ -110,7 +110,7 @@ class UserController extends Controller
     {
         try {
             $ids = $request->input('ids'); // Expecting an array or a single ID
-
+            $ids = is_array($ids) ? $ids : [$ids];
             if (is_array($ids)) {
 
                 $user = User::whereIn('id', $ids)->get();
