@@ -40,70 +40,132 @@ class BookmarkController extends Controller
 
         try {
 
-            $existingBookmark = Bookmark::where('website_url', $request->url)
-                ->where('user_id', Auth::id())
-                ->first();
+            $existingBookmark = Bookmark::where('website_url', $request->url)->first();
 
+            // Check if the bookmark already exists dont create a new one
             if ($existingBookmark) {
-                return response()->json([
-                    'error' => 'You have already bookmarked this URL.',
-                    'message' => 'Duplicate entry: The bookmark already exists.',
-                ], 409);
-            }
-            if (isset($request->sub_category_name)) {
-                $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->where('user_id', Auth::id())->first();
 
-                if (empty($cat_data)) {
-                    $category =  Category::create([
-                        'title' => $request->sub_category_name,
-                        'parent_id' => $request->category_id,
-                        'user_id' => Auth::id(),
-                    ]);
-                    $sub_cat_id = $category->id;
-                } else {
+                //check if new sub category is already exist
+                if (isset($request->sub_category_name)) {
                     $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->where('user_id', Auth::id())->first();
-                    $sub_cat_id = $cat_data->id;
+
+                    if (empty($cat_data)) {
+                        $category =  Category::create([
+                            'title' => $request->sub_category_name,
+                            'parent_id' => $request->category_id,
+                            'user_id' => Auth::id(),
+                        ]);
+                        $sub_cat_id = $category->id;
+                    } else {
+                        $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->where('user_id', Auth::id())->first();
+                        $sub_cat_id = $cat_data->id;
+                    }
+                } else {
+                    $sub_cat_id = $request->sub_category_id;
+                }
+
+                // Check if the bookmark already exists in the user's bookmarks
+                $userBookmark = Bookmark::where('website_url', $request->url)
+                    ->where('user_id', Auth::id())
+                    ->first();
+
+                if ($userBookmark) {
+                    return response()->json([
+                        'error' => 'You have already bookmarked this URL.',
+                        'message' => 'Duplicate entry: The bookmark already exists.',
+                    ], 409);
+                }
+
+                $bookmark = Bookmark::create([
+                    'title' => $request->title,
+                    'user_id' => Auth::id(),
+                    'website_url' => $existingBookmark->website_url,
+                    'icon_path' => $existingBookmark->icon_path,
+                ]);
+                //dd($sub_cat_id);
+                UserBookmark::create([
+                    'bookmark_id' => $bookmark->id,
+                    'user_id' => Auth::id(),
+                    'category_id' => $request->category_id,
+                    'sub_category_id' => $sub_cat_id,
+                    'add_to' => $request->add_to,
+                ]);
+
+                if ($bookmark) {
+                    return response()->json([
+                        'message' => 'Bookmark added successfully!',
+                        'category_id' => $request->category_id,
+                        'add_to' => $request->add_to,
+                        'sub_category_id' => $sub_cat_id,
+                    ]);
+                } else {
+                    return response()->json([
+                        'error' => 'Failed to add bookmark',
+                    ], 500);
                 }
             } else {
-                $sub_cat_id = $request->sub_category_id;
+                // create a new bookmark
+                if (isset($request->sub_category_name)) {
+                    $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->where('user_id', Auth::id())->first();
+
+                    if (empty($cat_data)) {
+                        $category =  Category::create([
+                            'title' => $request->sub_category_name,
+                            'parent_id' => $request->category_id,
+                            'user_id' => Auth::id(),
+                        ]);
+                        $sub_cat_id = $category->id;
+                    } else {
+                        $cat_data = Category::where('title', 'LIKE', '%' . $request->sub_category_name . '%')->where('user_id', Auth::id())->first();
+                        $sub_cat_id = $cat_data->id;
+                    }
+                } else {
+                    $sub_cat_id = $request->sub_category_id;
+                }
+                $fileName = $request->title . time() . '.png';
+                $filePath = storage_path("app/public/{$fileName}");
+                $base64Image = Browsershot::url($request->url)
+                    ->timeout(60000)
+                    ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
+                    ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
+                    ->waitUntilFirstPaint()
+                    ->setDelay(1500)
+                    ->setOption('viewport', ['width' => 1280, 'height' => 720])
+                    ->base64Screenshot();
+
+                $imageData = base64_decode($base64Image);
+                file_put_contents($filePath, $imageData);
+
+
+                $bookmark = Bookmark::create([
+                    'title' => $request->title,
+                    'user_id' => Auth::id(),
+                    'website_url' => $request->url,
+                    // 'icon_path' => "storage/{$fileName}",
+                    'icon_path' => "{$fileName}",
+                ]);
+                //dd($sub_cat_id);
+                UserBookmark::create([
+                    'bookmark_id' => $bookmark->id,
+                    'user_id' => Auth::id(),
+                    'category_id' => $request->category_id,
+                    'sub_category_id' => $sub_cat_id,
+                    'add_to' => $request->add_to,
+                ]);
+
+                if ($bookmark) {
+                    return response()->json([
+                        'message' => 'Bookmark added successfully!',
+                        'category_id' => $request->category_id,
+                        'add_to' => $request->add_to,
+                        'sub_category_id' => $sub_cat_id,
+                    ]);
+                } else {
+                    return response()->json([
+                        'error' => 'Failed to add bookmark',
+                    ], 500);
+                }
             }
-            $fileName = $request->title . time() . '.png';
-            $filePath = storage_path("app/public/{$fileName}");
-            $base64Image = Browsershot::url($request->url)
-                ->timeout(60000)
-                ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
-                ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
-                ->waitUntilFirstPaint()
-                ->setDelay(1500)
-                ->setOption('viewport', ['width' => 1280, 'height' => 720])
-                ->base64Screenshot();
-
-            $imageData = base64_decode($base64Image);
-            file_put_contents($filePath, $imageData);
-
-
-            $bookmark = Bookmark::create([
-                'title' => $request->title,
-                'user_id' => Auth::id(),
-                'website_url' => $request->url,
-                // 'icon_path' => "storage/{$fileName}",
-                'icon_path' => "{$fileName}",
-            ]);
-            //dd($sub_cat_id);
-            UserBookmark::create([
-                'bookmark_id' => $bookmark->id,
-                'user_id' => Auth::id(),
-                'category_id' => $request->category_id,
-                'sub_category_id' => $sub_cat_id,
-                'add_to' => $request->add_to,
-            ]);
-
-            return response()->json([
-                'message' => 'Bookmark added successfully!',
-                'category_id' => $request->category_id,
-                'add_to' => $request->add_to,
-                'sub_category_id' => $sub_cat_id,
-            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Screenshot failed: ' . $e->getMessage()], 500);
         }
