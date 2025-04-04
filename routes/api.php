@@ -71,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/remove-toplink-bookmark/{id}', [BookmarkController::class, 'remove_toplinks_bookmark']);
     Route::post('/user/update/{id}', [AuthController::class, 'update']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/delete-user', [AuthController::class, 'destroy']);
     // Test Email Route (only authenticated users)
 
 });
