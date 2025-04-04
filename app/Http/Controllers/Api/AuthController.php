@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\ResetPasswordMail;
 use App\Models\Bookmark;
 use App\Models\UserBookmark;
+use App\Models\Category;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -388,5 +389,39 @@ class AuthController extends Controller
 
         // Return a success message
         return response()->json(['message' => 'Password changed successfully.']);
+    }
+
+    /*
+    * Date: 4-Apr-2025
+    * This method will delete the user and all the bookmarks and categories associated with that user.
+    *   
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function destroy()
+    {
+        try {
+            $id = Auth::user()->id;
+            if ($id) {
+
+                $user = User::where('id', $id)->get();
+                // dd($user);
+                if ($user->isNotEmpty()) {
+                    $arrayId = [$id];
+                    User::where('id', $id)->delete();
+                    Category::whereIn('user_id', $arrayId)->delete();
+                    Bookmark::whereIn('user_id', $arrayId)->delete();
+                    UserBookmark::whereIn('user_id', $arrayId)->delete();
+
+                    return response()->json(['message' => 'User deleted successfully!']);
+                } else {
+                    return response()->json(['error' => 'User not found or could not be deleted!'], 404);
+                }
+            } else {
+                return response()->json(['error' => 'Something went wrong!'], 404);
+            }
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An error occurred!', 'message' => $e->getMessage()], 500);
+        }
     }
 }
