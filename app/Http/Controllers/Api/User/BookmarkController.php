@@ -479,42 +479,42 @@ class BookmarkController extends Controller
     public function import(Request $request)
     {
 
-        $request->validate([
-            'file' => 'required|mimes:html,json|max:2048',
-        ]);
+        // $request->validate([
+        //     'file' => 'required|mimes:html,json|max:2048',
+        // ]);
 
-        $file = $request->file('file');
-        $content = file_get_contents($file->getPathname());
+        // $file = $request->file('file');
+        // $content = file_get_contents($file->getPathname());
 
-        if ($file->getClientOriginalExtension() == 'html') {
-            $bookmarks = $this->parseHtml($content);
-        } else {
-            $bookmarks = json_decode($content, true) ?? [];
-        }
+        // if ($file->getClientOriginalExtension() == 'html') {
+        //     $bookmarks = $this->parseHtml($content);
+        // } else {
+        //     $bookmarks = json_decode($content, true) ?? [];
+        // }
 
-        foreach ($bookmarks as $bookmark) {
-            $existingBookmark = Bookmark::where('website_url', $bookmark['url'])->first();
+        // foreach ($bookmarks as $bookmark) {
+        //     $existingBookmark = Bookmark::where('website_url', $bookmark['url'])->first();
 
-            if (!$existingBookmark) {
-                $bookmark = Bookmark::create([
-                    'user_id' => Auth::id(),
-                    'title' => $bookmark['title'],
-                    'website_url' => $bookmark['url'],
-                ]);
+        //     if (!$existingBookmark) {
+        //         $bookmark = Bookmark::create([
+        //             'user_id' => Auth::id(),
+        //             'title' => $bookmark['title'],
+        //             'website_url' => $bookmark['url'],
+        //         ]);
 
-                //dd($sub_cat_id);
-                UserBookmark::create([
-                    'bookmark_id' => $bookmark->id,
-                    'user_id' => Auth::id(),
-                ]);
-            }
-        }
+        //         //dd($sub_cat_id);
+        //         UserBookmark::create([
+        //             'bookmark_id' => $bookmark->id,
+        //             'user_id' => Auth::id(),
+        //         ]);
+        //     }
+        // }
 
-        if (!empty($bookmarks) && isset($created)) {
-            return response()->json(['message' => 'Bookmarks imported successfully'], 200);
-        } else {
-            return response()->json(['message' => 'Duplicate bookmarks found'], 400);
-        }
+        // if (!empty($bookmarks) && isset($created)) {
+        //     return response()->json(['message' => 'Bookmarks imported successfully'], 200);
+        // } else {
+        //     return response()->json(['message' => 'Duplicate bookmarks found'], 400);
+        // }
     }
 
     /**
