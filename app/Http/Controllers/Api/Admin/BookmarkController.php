@@ -103,7 +103,7 @@ class BookmarkController extends Controller
                     return $q->where('pinned', $pinned);
                 })
                 ->orderByDesc('pinned')
-                ->orderBy('position', 'asc')
+                ->orderByDesc('created_at')
                 ->paginate(10); // Ensure consistent pagination
 
             $formattedBookmarks = $query->map(function ($userBookmark) {
