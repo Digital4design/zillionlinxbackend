@@ -506,7 +506,7 @@ class BookmarkController extends Controller
 
         return response()->json([
             'status' => true,
-            'bookmarks' => "dummy data"
+            'bookmarks' =>  $bookmarksData
         ]);
 
         // foreach ($bookmarks as $bookmark) {
