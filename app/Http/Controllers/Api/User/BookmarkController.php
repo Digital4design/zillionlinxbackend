@@ -497,8 +497,8 @@ class BookmarkController extends Controller
         foreach ($bookmarks as $bookmark) {
             $bookmarksData[] = [
 
-                'title' => $bookmark->title,
-                'website_url' => $bookmark->url,
+                'title' => $bookmark['title'],
+                'website_url' => $bookmark['url'],
 
                 // Add any other fields you need
             ];
