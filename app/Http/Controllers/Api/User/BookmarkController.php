@@ -479,18 +479,35 @@ class BookmarkController extends Controller
     public function import(Request $request)
     {
 
-        // $request->validate([
-        //     'file' => 'required|mimes:html,json|max:2048',
-        // ]);
+        $request->validate([
+            'file' => 'required|mimes:html,json|max:2048',
+        ]);
 
-        // $file = $request->file('file');
-        // $content = file_get_contents($file->getPathname());
+        $file = $request->file('file');
+        $content = file_get_contents($file->getPathname());
 
-        // if ($file->getClientOriginalExtension() == 'html') {
-        //     $bookmarks = $this->parseHtml($content);
-        // } else {
-        //     $bookmarks = json_decode($content, true) ?? [];
-        // }
+        if ($file->getClientOriginalExtension() == 'html') {
+            $bookmarks = $this->parseHtml($content);
+        } else {
+            $bookmarks = json_decode($content, true) ?? [];
+        }
+
+         $bookmarksData = [];
+
+        foreach ($bookmarks as $bookmark) {
+            $bookmarksData[] = [
+
+                'title' => $bookmark->title,
+                'website_url' => $bookmark->url,
+
+                // Add any other fields you need
+            ];
+        }
+
+        return response()->json([
+            'status' => true,
+            'bookmarks' => $bookmarksData
+        ]);
 
         // foreach ($bookmarks as $bookmark) {
         //     $existingBookmark = Bookmark::where('website_url', $bookmark['url'])->first();
