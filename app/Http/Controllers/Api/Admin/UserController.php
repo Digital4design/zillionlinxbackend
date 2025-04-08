@@ -28,11 +28,12 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
+
         try {
-
             $query = User::where('role_id', 2)
-                ->withcount('totalBookmarks');
+                ->withCount('totalBookmarks');
 
+            // Apply search
             if ($request->filled('search')) {
                 $search = $request->input('search');
                 $query->where(function ($q) use ($search) {
@@ -42,7 +43,43 @@ class UserController extends Controller
                 });
             }
 
-            $users = $query->orderBy('created_at', 'desc')->paginate(10);
+            // Acceptable sort fields and map them
+            $sortMap = [
+                'name' => 'first_name',
+                'country' => 'country',
+                'created' => 'created_at',
+                'last_access' => 'last_login_at',
+                'total_bookmarks' => 'total_bookmarks_count',
+            ];
+
+            // Get sort parameters from request
+            if (!$request->input('sort_by')) {
+                $sortByInput = $request->input('sort_by', 'created');
+            } else {
+                $sortByInput = $request->input('sort_by');
+            }
+
+            if (!$request->input('sort_order')) {
+
+                $sortOrder = $request->input('sort_order', 'desc');
+            } else {
+                $sortOrder = $request->input('sort_order');
+            }
+
+
+
+            // Normalize sort field
+            $sortBy = $sortMap[$sortByInput] ?? 'created_at';
+
+            // Apply sorting logic
+            if ($sortByInput === 'name') {
+                $query->orderBy('first_name', $sortOrder)->orderBy('last_name', $sortOrder);
+            } else {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            // Paginate results
+            $users = $query->paginate(10);
 
             if ($users->isEmpty()) {
                 return response()->json([
@@ -50,12 +87,12 @@ class UserController extends Controller
                     'message' => 'No users found',
                     'status_code' => 404,
                 ], 404);
-            } else {
-                return response()->json([
-                    'status' => 'success',
-                    'data' => $users,
-                ], 200);
             }
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $users,
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Something went wrong. Please try again later.',
@@ -64,6 +101,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
     /*
     * Date: 18-Mar-2025
