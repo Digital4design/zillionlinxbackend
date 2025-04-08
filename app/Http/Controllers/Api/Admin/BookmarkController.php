@@ -258,11 +258,15 @@ class BookmarkController extends Controller
      *
      * @return \Illuminate\Support\Collection
      */
-    public function adminImportBookmark()
+    public function adminImportBookmark(Request $request)
     {
         $BookmarkData = AdminBookmark::select('id', 'title', 'website_url')
+            ->when($request->has('search'), function ($query) use ($request) {
+                $query->where('title', 'like', '%' . $request->input('search') . '%');
+            })
             ->orderBy('created_at', 'desc')
             ->get();
+
 
         if ($BookmarkData->isEmpty()) {
             return response()->json([
