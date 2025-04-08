@@ -281,4 +281,29 @@ class BookmarkController extends Controller
             'data' => $BookmarkData
         ], 200);
     }
+
+    /**
+     * Date: 8-Apr-25
+     * Delete multiple ImportBookmark entries.
+     *
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    function deleteImportBookmark(Request $request)
+    {
+        // Validate the request to ensure 'ids' is an array of integers
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:admin_bookmarks,id',
+        ]);
+
+        // Perform bulk deletion
+        $deleted = AdminBookmark::whereIn('id', $validated['ids'])->delete();
+
+        return response()->json([
+            'message' => 'Selected bookmarks deleted successfully.',
+            'deleted_count' => $deleted,
+        ]);
+    }
 }
