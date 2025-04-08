@@ -8,6 +8,7 @@ use Spatie\Browsershot\Browsershot;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Bookmark;
+use App\Models\AdminBookmark;
 use App\Models\UserBookmark;
 use App\Models\Category;
 use Exception;
@@ -469,89 +470,6 @@ class BookmarkController extends Controller
         }
     }
 
-    /**
-     * Date: 20-Mar-2025
-     * Import bookmarks from an uploaded file (HTML or JSON).
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function import(Request $request)
-    {
-
-        $request->validate([
-            'file' => 'required|mimes:html,json|max:2048',
-        ]);
-
-        $file = $request->file('file');
-        $content = file_get_contents($file->getPathname());
-
-        if ($file->getClientOriginalExtension() == 'html') {
-            $bookmarks = $this->parseHtml($content);
-        } else {
-            $bookmarks = json_decode($content, true) ?? [];
-        }
-
-         $bookmarksData = [];
-
-        foreach ($bookmarks as $bookmark) {
-            $bookmarksData[] = [
-
-                'title' => $bookmark['title'],
-                'website_url' => $bookmark['url'],
-
-                // Add any other fields you need
-            ];
-        }
-
-        return response()->json([
-            'status' => true,
-           // 'bookmarks' =>  $bookmarksData
-        ]);
-
-        // foreach ($bookmarks as $bookmark) {
-        //     $existingBookmark = Bookmark::where('website_url', $bookmark['url'])->first();
-
-        //     if (!$existingBookmark) {
-        //         $bookmark = Bookmark::create([
-        //             'user_id' => Auth::id(),
-        //             'title' => $bookmark['title'],
-        //             'website_url' => $bookmark['url'],
-        //         ]);
-
-        //         //dd($sub_cat_id);
-        //         UserBookmark::create([
-        //             'bookmark_id' => $bookmark->id,
-        //             'user_id' => Auth::id(),
-        //         ]);
-        //     }
-        // }
-
-        // if (!empty($bookmarks) && isset($created)) {
-        //     return response()->json(['message' => 'Bookmarks imported successfully'], 200);
-        // } else {
-        //     return response()->json(['message' => 'Duplicate bookmarks found'], 400);
-        // }
-    }
-
-    /**
-     * Date: 20-Mar-2025
-     * Parse bookmarks from an HTML file (exported from a browser).
-     *
-     * @param string $htmlContent
-     * @return array
-     */
-    private function parseHtml($htmlContent)
-    {
-        $bookmarks = [];
-        preg_match_all('/<A HREF="([^"]+)".*>(.*?)<\/A>/', $htmlContent, $matches, PREG_SET_ORDER);
-
-        foreach ($matches as $match) {
-            $bookmarks[] = ['url' => $match[1], 'title' => strip_tags($match[2])];
-        }
-
-        return $bookmarks;
-    }
 
     /**
      * Date: 26-Mar-2025
@@ -595,5 +513,36 @@ class BookmarkController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => 'An error occurred while updating the bookmark', 'details' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Date: 8-Apr-25
+     * Function: adminImportBookmark
+     *
+     * Description:
+     * Retrieves a list of admin bookmarks, selecting only the ID, title, 
+     * and website URL. The bookmarks are ordered by their creation date 
+     * in descending order (most recent first).
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function adminImportBookmark()
+    {
+        $BookmarkData = AdminBookmark::select('id', 'title', 'website_url')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($BookmarkData->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No bookmarks found',
+                'data' => []
+            ], 404);
+        }
+        return response()->json([
+            'status' => 200,
+            'message' => 'Bookmark retrieved successfully',
+            'data' => $BookmarkData
+        ], 200);
     }
 }

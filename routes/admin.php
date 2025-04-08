@@ -28,4 +28,6 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/delete-Bookmarks', [BookmarkController::class, 'destroy']);
     Route::post('/categories/reorder', [CategoryController::class, 'reorderCategory']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
+    Route::post('/import-bookmark', [BookmarkController::class, 'import']);
+    Route::post('/listing-admin-bookmark', [BookmarkController::class, 'adminImportBookmark']);
 });
