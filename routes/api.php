@@ -66,12 +66,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/search', [SearchController::class, 'search']);
     Route::post('/search_bookmark', [SearchController::class, 'search_bookmark']);
-    Route::post('/import-bookmark', [BookmarkController::class, 'import']);
+
     Route::post('/add-toplink-bookmark/{id}', [BookmarkController::class, 'add_toplinks_bookmark']);
     Route::post('/remove-toplink-bookmark/{id}', [BookmarkController::class, 'remove_toplinks_bookmark']);
     Route::post('/user/update/{id}', [AuthController::class, 'update']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/delete-user', [AuthController::class, 'destroy']);
+    Route::post('/listing-admin-bookmark', [BookmarkController::class, 'adminImportBookmark']);
     // Test Email Route (only authenticated users)
 
 });

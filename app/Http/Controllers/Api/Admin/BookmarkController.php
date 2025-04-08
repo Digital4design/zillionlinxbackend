@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\UserBookmark;
 use App\Models\Bookmark;
+use App\Models\AdminBookmark;
 use Illuminate\Support\Facades\Auth;
 
 use Exception;
@@ -23,54 +24,6 @@ class BookmarkController extends Controller
             ], 403));
         }
     }
-
-    // public function index(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'category_id' => 'required|exists:categories,id',
-    //         'sub_category_id' => 'nullable|exists:categories,id',
-    //         'user_id' => 'required'
-    //     ]);
-
-    //     try {
-    //         $userId = $validated['user_id']; // Get authenticated user ID
-
-    //         $bookmarks = UserBookmark::with('bookmark')
-    //             ->where('user_id', $userId)
-    //             ->where('category_id', $validated['category_id'])
-    //             ->when(!empty($validated['sub_category_id']), function ($query) use ($validated) {
-    //                 $query->where('sub_category_id', $validated['sub_category_id']);
-    //             })
-    //             ->orderByDesc('pinned') // Show pinned bookmarks first
-    //             ->orderBy('position', 'asc') // Then order by position
-    //             ->get()
-    //             ->map(function ($userBookmark) {
-    //                 return [
-    //                     'id'             => $userBookmark->id,
-    //                     'bookmark_id'    => $userBookmark->bookmark_id,
-    //                     'user_id'        => $userBookmark->user_id,
-    //                     'category_id'    => $userBookmark->category_id,
-    //                     'sub_category_id' => $userBookmark->sub_category_id,
-    //                     'add_to'         => $userBookmark->add_to,
-    //                     'pinned'         => $userBookmark->pinned,
-    //                     'position'       => $userBookmark->position,
-    //                     'created_at'     => $userBookmark->created_at,
-    //                     'updated_at'     => $userBookmark->updated_at,
-    //                     'website_url'    => $userBookmark->bookmark->website_url ?? null,
-    //                     'icon_path'      => $userBookmark->bookmark->icon_path ?? null,
-    //                 ];
-    //             });
-
-    //         return response()->json([
-    //             'message'   => $bookmarks->isNotEmpty() ? 'Bookmarks retrieved successfully!' : 'No bookmarks found.',
-    //             'bookmarks' => $bookmarks,
-    //         ], 200);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'error' => 'Failed to fetch bookmarks: ' . $e->getMessage(),
-    //         ], 500);
-    //     }
-    // }
 
     /**
      * Date: 20-Mar-2025
@@ -230,5 +183,98 @@ class BookmarkController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Date: 8-Apr-2025
+     * Import bookmarks from an uploaded file (HTML or JSON).
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function import(Request $request)
+    {
+
+        $request->validate([
+            'file' => 'required|mimes:html,json|max:2048',
+        ]);
+
+        $file = $request->file('file');
+        $content = file_get_contents($file->getPathname());
+
+        if ($file->getClientOriginalExtension() == 'html') {
+            $bookmarks = $this->parseHtml($content);
+        } else {
+            $bookmarks = json_decode($content, true) ?? [];
+        }
+
+
+        foreach ($bookmarks as $bookmark) {
+            $existingBookmark = AdminBookmark::where('website_url', $bookmark['url'])->first();
+
+            if (!$existingBookmark) {
+                $bookmarkCreated = AdminBookmark::create([
+                    'user_id' => Auth::id(),
+                    'title' => $bookmark['title'],
+                    'website_url' => $bookmark['url'],
+                ]);
+            }
+        }
+
+        if (!empty($bookmarkCreated)) {
+            return response()->json(['message' => 'Bookmarks imported successfully'], 200);
+        } else {
+            return response()->json(['message' => 'Duplicate bookmarks found'], 400);
+        }
+    }
+
+    /**
+     * Date: 20-Mar-2025
+     * Parse bookmarks from an HTML file (exported from a browser).
+     *
+     * @param string $htmlContent
+     * @return array
+     */
+    private function parseHtml($htmlContent)
+    {
+        $bookmarks = [];
+        preg_match_all('/<A HREF="([^"]+)".*>(.*?)<\/A>/', $htmlContent, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            $bookmarks[] = ['url' => $match[1], 'title' => strip_tags($match[2])];
+        }
+
+        return $bookmarks;
+    }
+
+    /**
+     * Date: 8-Apr-25
+     * Function: adminImportBookmark
+     *
+     * Description:
+     * Retrieves a list of admin bookmarks, selecting only the ID, title, 
+     * and website URL. The bookmarks are ordered by their creation date 
+     * in descending order (most recent first).
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function adminImportBookmark()
+    {
+        $BookmarkData = AdminBookmark::select('id', 'title', 'website_url')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        if ($BookmarkData->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No bookmarks found',
+                'data' => []
+            ], 404);
+        }
+        return response()->json([
+            'status' => 200,
+            'message' => 'Bookmark retrieved successfully',
+            'data' => $BookmarkData
+        ], 200);
     }
 }
