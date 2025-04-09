@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 
 Route::post('/admin/login', [AuthController::class, 'adminLogin']);
+
 Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     // Route::get('/dashboard', [AdminController::class, 'dashboard']);
 
