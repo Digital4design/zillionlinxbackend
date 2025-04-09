@@ -97,7 +97,8 @@ class AuthController extends Controller
 
             $response = $this->authService->emailLogin(
                 $request->input('email'),
-                $request->input('password')
+                $request->input('password'),
+                $request->input('remember_me')
             );
 
             if ($response instanceof \Illuminate\Http\JsonResponse && $response->getStatusCode() === 200) {

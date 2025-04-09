@@ -8,10 +8,11 @@ use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use App\Models\Bookmark;
 use App\Models\UserBookmark;
+use Carbon\Carbon;
 
 class AuthService
 {
-    public function emailLogin(string $email, string $password)
+    public function emailLogin(string $email, string $password, bool $remember_me)
     {
         if (Auth::attempt(['email' => $email, 'password' => $password])) {
             $user = Auth::user();
@@ -20,7 +21,16 @@ class AuthService
                 return error("Invalid credentials");
             }
 
+            // $token = $user->createToken('auth_token')->plainTextToken;
             $token = $user->createToken('auth_token')->plainTextToken;
+
+            $accessToken = $user->tokens()->latest()->first();
+            $accessToken->expires_at = $remember_me
+                ? Carbon::now()->addDays(10)
+                : Carbon::now()->addDays(1);
+            $accessToken->save();
+
+
             $data = [
                 "name" => $user->first_name . " " . $user->last_name,
                 'first_name' => $user->first_name,
@@ -33,7 +43,7 @@ class AuthService
             ];
 
 
-            return success("Login successful", ['token' => $token, 'user' => $data]);
+            return success("Login successful", ['token' => $token, 'user' => $data, 'expires_at' => $accessToken->expires_at]);
         }
 
         return error("Invalid credentials");
