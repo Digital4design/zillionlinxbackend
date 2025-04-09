@@ -293,6 +293,7 @@ class BookmarkController extends Controller
      */
     function deleteImportBookmark(Request $request)
     {
+        // var_dump($request->ids());
         // Validate the request to ensure 'ids' is an array of integers
         $validated = $request->validate([
             'ids' => 'required|array',
