@@ -526,7 +526,7 @@ class BookmarkController extends Controller
      *
      * @return \Illuminate\Support\Collection
      */
-    public function adminImportBookmark(Request $request)
+    public function ImportBookmark(Request $request)
     {
         $BookmarkData = AdminBookmark::select('id', 'title', 'website_url')
             ->when($request->has('search'), function ($query) use ($request) {
