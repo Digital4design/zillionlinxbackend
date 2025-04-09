@@ -72,7 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user/update/{id}', [AuthController::class, 'update']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::post('/delete-user', [AuthController::class, 'destroy']);
-    Route::get('/listing-admin-bookmark', [BookmarkController::class, 'adminImportBookmark']);
+    Route::get('/listing-bookmark', [BookmarkController::class, 'adminImportBookmark']);
     // Test Email Route (only authenticated users)
 
 });
