@@ -74,13 +74,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/delete-user', [AuthController::class, 'destroy']);
     Route::get('/listing-bookmark', [BookmarkController::class, 'ImportBookmark']);
     // Test Email Route (only authenticated users)
-    Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
-        $request->user()->currentAccessToken()->delete();
 
-        return response()->json(['message' => 'Logged out successfully']);
-    });
 });
-
+Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
+    $request->user()->currentAccessToken()->delete();
+    return response()->json(['message' => 'Logged out successfully']);
+});
 Route::middleware('auth:sanctum')->get('/check-token', function (Request $request) {
     return response()->json([
         'message' => 'Token is valid',
