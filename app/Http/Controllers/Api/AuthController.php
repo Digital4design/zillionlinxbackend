@@ -72,19 +72,22 @@ class AuthController extends Controller
     {
         $type = $request->input('type');
         $user = null; // Initialize user variable
-
+        $response = null;
         if ($type === 'google') {
             $response = $this->authService->googleLogin($request->input('google_token'));
 
-            if ($response instanceof \Illuminate\Http\JsonResponse && $response->getStatusCode() === 200) {
+            if ($response instanceof \Illuminate\Http\JsonResponse) {
+                $status = $response->getStatusCode();
                 $responseData = $response->getData(true);
 
-                if (!empty($responseData['status']) && $responseData['status'] === 'success') {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Logged in Successfully!',
-                        'data' => $responseData['data']
-                    ]);
+                if ($status !== 200 || ($responseData['status'] ?? '') !== 'success') {
+                    return $response; // Return error directly
+                }
+
+                // Get user from response if login successful
+                $userId = $responseData['data']['user']['id'] ?? null;
+                if ($userId) {
+                    $user = User::find($userId);
                 }
             }
         } elseif ($type === 'email') {

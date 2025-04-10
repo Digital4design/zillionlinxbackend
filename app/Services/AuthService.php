@@ -54,8 +54,14 @@ class AuthService
     {
         try {
             $googleUser = Socialite::driver('google')->stateless()->userFromToken($googleToken);
-            // Extract first name and last name
-            $fullName = explode(' ', $googleUser->name, 2);
+
+            $emailUser =  User::where('email', $googleUser->email)->whereNull('google_id')->first();
+            if ($emailUser) {
+                return response()->json([
+                    'message' => 'Email already exists with different provider'
+                ], 404);
+            }
+            $fullName = explode(' ', $googleUser->getName, 2);
             $firstName = $fullName[0] ?? null;
             $lastName = $fullName[1] ?? null;
 
@@ -72,11 +78,12 @@ class AuthService
                 return success("Logged in Successfully!", [
                     'token' => $token,
                     'user' => [
+                        'id' => $existingUser->id,
                         'google_id' => $existingUser->google_id,
                         'first_name' => $existingUser->first_name,
                         'last_name' => $existingUser->last_name,
                         'country' => $existingUser->country,
-                        'authToken' => $token,
+                        // 'authToken' => $token,
                         'role' => "user",
                         'email' => $existingUser->email,
                     ]
@@ -130,11 +137,12 @@ class AuthService
                 return success("Logged in Successfully!", [
                     'token' => $token,
                     'user' => [
+                        'id' => $newUser->id,
                         'google_id' => $newUser->google_id,
                         'first_name' => $newUser->first_name,
                         'last_name' => $newUser->last_name,
                         'country' => $newUser->country,
-                        'authToken' => $token,
+                        // 'authToken' => $token,
                         'role' => "user",
                         'user' => $newUser->name,
                         'email' => $newUser->email,
