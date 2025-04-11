@@ -62,7 +62,7 @@ class BookmarkController extends Controller
                         $sub_cat_id = $cat_data->id;
                     }
                 } else {
-                    $sub_cat_id = $request->sub_category_id;
+                    $sub_cat_id = $request->sub_category_id ?? null;
                 }
 
                 // Check if the bookmark already exists in the user's bookmarks
@@ -121,7 +121,7 @@ class BookmarkController extends Controller
                         $sub_cat_id = $cat_data->id;
                     }
                 } else {
-                    $sub_cat_id = $request->sub_category_id;
+                    $sub_cat_id = $request->sub_category_id ?? null;
                 }
                 $fileName = $request->title . time() . '.png';
                 $filePath = storage_path("app/public/{$fileName}");
