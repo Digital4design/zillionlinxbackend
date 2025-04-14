@@ -330,7 +330,12 @@ class SearchController extends Controller
             $query = Bookmark::query();
             $userId = auth::id();
             if ($request->has('title')) {
-                $query->where('user_id', $userId)->where('title', 'like', '%' . $request->title . '%')->orWhere('website_url', 'like', '%' . $request->title . '%');
+                // $query->where('user_id', $userId)->where('title', 'like', '%' . $request->title . '%');
+                $query->where('user_id', $userId)
+                    ->where(function ($q) use ($request) {
+                        $q->where('title', 'like', '%' . $request->title . '%')
+                            ->orWhere('website_url', 'like', '%' . $request->title . '%');
+                    });
             }
 
             $bookmarks = $query->select('website_url', 'icon_path', 'title')->get();
