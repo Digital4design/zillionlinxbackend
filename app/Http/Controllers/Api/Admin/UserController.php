@@ -83,10 +83,10 @@ class UserController extends Controller
 
             if ($users->isEmpty()) {
                 return response()->json([
-                    'status' => 'error',
+                    'status' => 'success',
                     'message' => 'No users found',
-                    'status_code' => 404,
-                ], 404);
+                    'status_code' => 200,
+                ], 200);
             }
 
             return response()->json([
