@@ -194,6 +194,7 @@ class BookmarkController extends Controller
      */
     public function import(Request $request)
     {
+
         $request->validate([
             'file' => 'required|mimes:html,json|max:2048',
         ]);
@@ -202,36 +203,30 @@ class BookmarkController extends Controller
         $content = file_get_contents($file->getPathname());
 
         if ($file->getClientOriginalExtension() == 'html') {
-            $bookmarks = collect($this->parseHtml($content))
-                ->unique('url')
-                ->values()
-                ->all();
+            $bookmarks = $this->parseHtml($content);
         } else {
             $bookmarks = json_decode($content, true) ?? [];
         }
 
-        $anyBookmarkCreated = false;
 
         foreach ($bookmarks as $bookmark) {
             $existingBookmark = AdminBookmark::where('website_url', $bookmark['url'])->first();
 
             if (!$existingBookmark) {
-                AdminBookmark::create([
+                $bookmarkCreated = AdminBookmark::create([
                     'user_id' => Auth::id(),
                     'title' => $bookmark['title'],
                     'website_url' => $bookmark['url'],
                 ]);
-                $anyBookmarkCreated = true;
             }
         }
 
-        if ($anyBookmarkCreated) {
+        if (!empty($bookmarkCreated)) {
             return response()->json(['message' => 'Bookmarks imported successfully'], 200);
         } else {
             return response()->json(['message' => 'Duplicate bookmarks found'], 400);
         }
     }
-
 
     /**
      * Date: 20-Mar-2025
@@ -243,7 +238,8 @@ class BookmarkController extends Controller
     private function parseHtml($htmlContent)
     {
         $bookmarks = [];
-        preg_match_all('/<A HREF="([^"]+)".*>(.*?)<\/A>/', $htmlContent, $matches, PREG_SET_ORDER);
+        // preg_match_all('/<A HREF="([^"]+)".*>(.*?)<\/A>/', $htmlContent, $matches, PREG_SET_ORDER);
+        preg_match_all('/<a\s+[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/i', $htmlContent, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
             $bookmarks[] = ['url' => $match[1], 'title' => strip_tags($match[2])];
