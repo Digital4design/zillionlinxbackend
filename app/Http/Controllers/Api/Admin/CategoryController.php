@@ -37,8 +37,16 @@ class CategoryController extends Controller
                 $query->whereNull('parent_id')->with('adminsubcategories');
             }
 
+            // if ($search) {
+            //     $query->where('title', 'LIKE', "%$search%");
+            // }
             if ($search) {
-                $query->where('title', 'LIKE', "%$search%");
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'LIKE', "%$search%")
+                        ->orWhereHas('adminsubcategories', function ($subQuery) use ($search) {
+                            $subQuery->where('title', 'LIKE', "%$search%");
+                        });
+                });
             }
 
             $categories = $query->paginate($perPage);
