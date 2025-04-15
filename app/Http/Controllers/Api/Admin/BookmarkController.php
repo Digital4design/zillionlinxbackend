@@ -272,10 +272,10 @@ class BookmarkController extends Controller
 
         if ($BookmarkData->isEmpty()) {
             return response()->json([
-                'status' => 404,
+                'status' => 200,
                 'message' => 'No bookmarks found',
                 'data' => []
-            ], 404);
+            ], 200);
         }
         return response()->json([
             'status' => 200,
