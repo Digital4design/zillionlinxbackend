@@ -61,7 +61,7 @@ class AuthService
                     'message' => 'Email already exists with different provider'
                 ], 404);
             }
-            $fullName = explode(' ', $googleUser->getName, 2);
+            $fullName = explode(' ', $googleUser->getName(), 2);
             $firstName = $fullName[0] ?? null;
             $lastName = $fullName[1] ?? null;
 
