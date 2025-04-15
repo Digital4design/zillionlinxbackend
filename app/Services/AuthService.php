@@ -102,7 +102,7 @@ class AuthService
                     'country' => $googleUser->country ?? NULL,
                 ]);
                 // Create default bookmarks for the new user
-                $BookmarkData = Bookmark::join('user_bookmarks', 'user_bookmarks.bookmark_id', '=', 'bookmarks.id')
+                $BookmarkData = Bookmark::leftJoin('user_bookmarks', 'user_bookmarks.bookmark_id', '=', 'bookmarks.id')
                     ->where('bookmarks.default', 'yes')
                     ->select(
                         'bookmarks.title',

@@ -162,7 +162,7 @@ class AuthController extends Controller
                 // 'role_id' => 2,  // You can adjust the role as needed
             ]);
 
-            $BookmarkData = Bookmark::join('user_bookmarks', 'user_bookmarks.bookmark_id', '=', 'bookmarks.id')
+            $BookmarkData = Bookmark::leftJoin('user_bookmarks', 'user_bookmarks.bookmark_id', '=', 'bookmarks.id')
                 ->where('bookmarks.default', 'yes')
                 ->select(
                     'bookmarks.title',
