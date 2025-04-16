@@ -79,7 +79,7 @@ class UserController extends Controller
             }
 
             // Paginate results
-            $users = $query->paginate(2);
+            $users = $query->paginate(10);
 
             if ($users->isEmpty()) {
                 return response()->json([
