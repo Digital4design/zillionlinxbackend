@@ -117,7 +117,7 @@ class SearchController extends Controller
                     'cx' => $cx,
                     'q' => $encodedTitle,
                     'num' => 10, // Get multiple results
-                    'safe' => 'medium',
+                    'safe' => 'high',
                     'searchType' => 'image'
                 ],
             ]);
