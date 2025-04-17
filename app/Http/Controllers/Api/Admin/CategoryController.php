@@ -188,4 +188,33 @@ class CategoryController extends Controller
             ], 500);
         }
     }
+
+    /*
+    * Date: 17-Apr-2025
+    * get all categories.
+    *
+    * This method allows to get all categories
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function get_category()
+    {
+        $category = Category::where('parent_id', null)
+            ->where('user_id', null)
+            ->select('id', 'title')
+            ->orderBy('position', 'asc')
+            ->get();
+
+        if ($category->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No categories found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Category fetched successfully',
+            'data' => $category
+        ], 200);
+    }
 }
