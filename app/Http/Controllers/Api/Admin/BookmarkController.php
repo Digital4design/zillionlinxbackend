@@ -27,6 +27,7 @@ class BookmarkController extends Controller
 
     /**
      * Date: 20-Mar-2025
+     * Updated: 17-Apr-2025
      * Get all bookmarks
      *
      * @param Request $request
@@ -82,6 +83,7 @@ class BookmarkController extends Controller
 
             return response()->json([
                 'status' => 'success',
+                'data'           => $formattedBookmarks,
                 'data' => [
                     'current_page'   => $query->currentPage(),
                     'data'           => $formattedBookmarks,
@@ -89,23 +91,7 @@ class BookmarkController extends Controller
                     'from'           => $query->firstItem(),
                     'last_page'      => $query->lastPage(),
                     'last_page_url'  => $query->url($query->lastPage()),
-                    'links'          => [
-                        [
-                            'url'    => $query->previousPageUrl(),
-                            'label'  => '&laquo; Previous',
-                            'active' => $query->onFirstPage() ? false : true
-                        ],
-                        [
-                            'url'    => $query->url($query->currentPage()),
-                            'label'  => (string) $query->currentPage(),
-                            'active' => true
-                        ],
-                        [
-                            'url'    => $query->nextPageUrl(),
-                            'label'  => 'Next &raquo;',
-                            'active' => $query->hasMorePages() ? true : false
-                        ]
-                    ],
+                    'links'          => $query->toArray()['links'],
                     'next_page_url' => $query->nextPageUrl(),
                     'path'          => $request->url(),
                     'per_page'      => $query->perPage(),
