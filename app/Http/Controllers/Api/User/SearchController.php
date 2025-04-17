@@ -317,6 +317,7 @@ class SearchController extends Controller
 
     /*
     * Date: 20-mar-25
+    * Updated: 17-apr-25
     * Search is based on title in database.
     *
     * This method allows searching data from database based on title:
