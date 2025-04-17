@@ -327,18 +327,32 @@ class SearchController extends Controller
     public function search_bookmark(Request $request)
     {
         try {
-            $query = Bookmark::query();
+            // $query = Bookmark::query();
+            // $userId = auth::id();
+            // if ($request->has('title')) {
+            //     // $query->where('user_id', $userId)->where('title', 'like', '%' . $request->title . '%');
+            //     $query->where('user_id', $userId)
+            //         ->where(function ($q) use ($request) {
+            //             $q->where('title', 'like', '%' . $request->title . '%')
+            //                 ->orWhere('website_url', 'like', '%' . $request->title . '%');
+            //         });
+            // }
+
+            // $bookmarks = $query->select('id', 'website_url', 'icon_path', 'title')->get();
             $userId = auth::id();
+            $query = Bookmark::query()
+                ->select('user_bookmarks.id', 'website_url', 'icon_path', 'title')
+                ->join('user_bookmarks', 'bookmarks.id', '=', 'user_bookmarks.bookmark_id')
+                ->where('bookmarks.user_id', $userId);
+
             if ($request->has('title')) {
-                // $query->where('user_id', $userId)->where('title', 'like', '%' . $request->title . '%');
-                $query->where('user_id', $userId)
-                    ->where(function ($q) use ($request) {
-                        $q->where('title', 'like', '%' . $request->title . '%')
-                            ->orWhere('website_url', 'like', '%' . $request->title . '%');
-                    });
+                $query->where(function ($q) use ($request) {
+                    $q->where('title', 'like', '%' . $request->title . '%')
+                        ->orWhere('website_url', 'like', '%' . $request->title . '%');
+                });
             }
 
-            $bookmarks = $query->select('id', 'website_url', 'icon_path', 'title')->get();
+            $bookmarks = $query->get();
 
             if ($bookmarks->isEmpty()) {
                 return response()->json([
