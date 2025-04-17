@@ -338,7 +338,7 @@ class SearchController extends Controller
                     });
             }
 
-            $bookmarks = $query->select('website_url', 'icon_path', 'title')->get();
+            $bookmarks = $query->select('id', 'website_url', 'icon_path', 'title')->get();
 
             if ($bookmarks->isEmpty()) {
                 return response()->json([
