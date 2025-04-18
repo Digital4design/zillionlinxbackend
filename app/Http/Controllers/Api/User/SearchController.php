@@ -140,7 +140,6 @@ class SearchController extends Controller
             return response()->json($results);
         } catch (\Exception $e) {
 
-
             return response()->json([
                 'error' => 'Something went wrong',
                 'status' => 500,

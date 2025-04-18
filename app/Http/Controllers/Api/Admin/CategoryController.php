@@ -196,7 +196,7 @@ class CategoryController extends Controller
     * This method allows to get all categories
     * @return \Illuminate\Http\JsonResponse
     */
-    public function get_category()
+    public function Category()
     {
         $category = Category::where('parent_id', null)
             ->where('user_id', null)
@@ -214,6 +214,38 @@ class CategoryController extends Controller
         return response()->json([
             'status' => 200,
             'message' => 'Category fetched successfully',
+            'data' => $category
+        ], 200);
+    }
+
+
+    /*
+    * Date: 17-Apr-2025
+    * get sub categories.
+    *
+    * This method allows to get sub categories based on parent id
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function subCategory(Request $request)
+    {
+        $parent_id = $request->input('category_id');
+        $category = Category::where('parent_id', $parent_id)
+            ->where('user_id', null)
+            ->select('id', 'title')
+            ->orderBy('position', 'asc')
+            ->get();
+
+        if ($category->isEmpty()) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'No categories found'
+            ], 404);
+        }
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Sub Category fetched successfully',
             'data' => $category
         ], 200);
     }
