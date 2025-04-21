@@ -31,7 +31,7 @@ class BookmarkController extends Controller
      * Get all bookmarks
      *
      * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @return \Illuminate\Http\JsonResponse 
      */
     public function getAllBookmarks(Request $request)
     {

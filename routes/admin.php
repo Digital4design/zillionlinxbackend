@@ -33,7 +33,8 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/import-bookmark', [BookmarkController::class, 'import']);
     Route::get('/listing-admin-bookmark', [BookmarkController::class, 'adminImportBookmark']);
     Route::post('/delete-admin-bookmark', [BookmarkController::class, 'deleteImportBookmark']);
-    Route::post('/main/categories', [CategoryController::class, 'get_category']);
+    Route::post('/main/categories', [CategoryController::class, 'Category']);
+    Route::post('/sub/categories', [CategoryController::class, 'subCategory']);
 });
 Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
     $request->user()->currentAccessToken()->delete();
