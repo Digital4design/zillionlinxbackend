@@ -131,7 +131,7 @@ class BookmarkController extends Controller
                     ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                     ->waitUntilFirstPaint()
                     ->setDelay(2000)
-                    ->setOption('headless', false)
+                    ->setOption('headless', true)
                     ->setOption('viewport', ['width' => 1280, 'height' => 720])
                     ->base64Screenshot();
 
