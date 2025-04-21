@@ -106,6 +106,8 @@ class SearchController extends Controller
     {
         $apiKey = 'AIzaSyAxO2TWy6DOkl_8yLYSe3gy58oQNAq5edo';
         $cx = 'c5b2f0643f4b54394';
+        // $apiKey = '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';
+        // $cx = '96b337026d2404c75';
 
         $client = new Client();
         $encodedTitle = urlencode($title);
