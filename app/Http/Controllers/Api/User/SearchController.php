@@ -106,8 +106,8 @@ class SearchController extends Controller
     {
         // $apiKey = 'AIzaSyAxO2TWy6DOkl_8yLYSe3gy58oQNAq5edo';
         // $cx = 'c5b2f0643f4b54394';
-        $apiKey = 'AIzaSyDZTtT6YWWPNzq9_e996f6lcezti73NPVo';
-        $cx = '96b337026d2404c75';
+        $apiKey = env('GOOGLE_API_KEY');
+        $cx = env('GOOGLE_SEARCH_CX');
 
         $client = new Client();
         $encodedTitle = urlencode($title);
