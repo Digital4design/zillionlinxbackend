@@ -194,7 +194,7 @@ class BookmarkController extends Controller
             $bookmarks = json_decode($content, true) ?? [];
         }
 
-
+        // dd($bookmarks);
         foreach ($bookmarks as $bookmark) {
             $existingBookmark = AdminBookmark::where('website_url', $bookmark['url'])->first();
 
@@ -203,6 +203,8 @@ class BookmarkController extends Controller
                     'user_id' => Auth::id(),
                     'title' => $bookmark['title'],
                     'website_url' => $bookmark['url'],
+                    'category' => $bookmark['category'],
+                    'sub_category' => $bookmark['sub_category'],
                 ]);
             }
         }
@@ -224,15 +226,21 @@ class BookmarkController extends Controller
     private function parseHtml($htmlContent)
     {
         $bookmarks = [];
-        // preg_match_all('/<A HREF="([^"]+)".*>(.*?)<\/A>/', $htmlContent, $matches, PREG_SET_ORDER);
-        preg_match_all('/<a\s+[^>]*href="([^"]+)"[^>]*>(.*?)<\/a>/i', $htmlContent, $matches, PREG_SET_ORDER);
+        // Use a regular expression to match anchor tags with the additional attributes
+        preg_match_all('/<a\s+[^>]*href="([^"]+)"[^>]*data-category="([^"]+)"[^>]*data-sub-category="([^"]+)"[^>]*>(.*?)<\/a>/i', $htmlContent, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
-            $bookmarks[] = ['url' => $match[1], 'title' => strip_tags($match[2])];
+            $bookmarks[] = [
+                'url' => $match[1],
+                'category' => $match[2],
+                'sub_category' => $match[3],
+                'title' => strip_tags($match[4])
+            ];
         }
-
+        // dd($bookmarks);
         return $bookmarks;
     }
+
 
     /**
      * Date: 8-Apr-25
@@ -247,7 +255,7 @@ class BookmarkController extends Controller
      */
     public function adminImportBookmark(Request $request)
     {
-        $BookmarkData = AdminBookmark::select('id', 'title', 'website_url')
+        $BookmarkData = AdminBookmark::select('id', 'category', 'sub_category', 'title', 'website_url')
             ->when($request->has('search'), function ($query) use ($request) {
                 $query->where('title', 'like', '%' . $request->input('search') . '%');
             })
