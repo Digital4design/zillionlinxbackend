@@ -11,6 +11,8 @@ class AdminBookmark extends Model
     protected $fillable = [
         'title',
         'website_url',
+        'category',
+        'sub_category',
         'created_at',
         'updated_at',
     ];
