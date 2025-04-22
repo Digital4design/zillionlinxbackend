@@ -517,6 +517,7 @@ class BookmarkController extends Controller
 
     /**
      * Date: 8-Apr-25
+     * Updated: 22-Apr-25
      * Function: adminImportBookmark
      *
      * Description:
@@ -528,7 +529,7 @@ class BookmarkController extends Controller
      */
     public function ImportBookmark(Request $request)
     {
-        $BookmarkData = AdminBookmark::select('id', 'title', 'website_url')
+        $BookmarkData = AdminBookmark::select('id', 'category', 'sub_category', 'title', 'website_url')
             ->when($request->has('search'), function ($query) use ($request) {
                 $query->where('title', 'like', '%' . $request->input('search') . '%');
             })
