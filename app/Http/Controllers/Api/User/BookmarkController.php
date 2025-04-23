@@ -534,7 +534,7 @@ class BookmarkController extends Controller
                 $query->where('title', 'like', '%' . $request->input('search') . '%');
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->get();
 
 
         if ($BookmarkData->isEmpty()) {
