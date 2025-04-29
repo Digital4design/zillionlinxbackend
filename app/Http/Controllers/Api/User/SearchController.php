@@ -130,14 +130,18 @@ class SearchController extends Controller
 
             if (!empty($googleSearchData['items'])) {
                 foreach ($googleSearchData['items'] as $item) {
+                    $breadcrumb = $this->generateBreadcrumb($item['link']);
+
                     $results[] = [
-                        'title'   => $item['title'],
-                        'link'    => $item['image']['contextLink'] ?? $item['link'], // Page link
-                        'snippet' => $item['snippet'],
-                        'image'   => $item['link'] // Image link
+                        'title'      => $item['title'],
+                        'link'       => $item['image']['contextLink'] ?? $item['link'],
+                        'snippet'    => $item['snippet'],
+                        'image'      => $item['link'],
+                        'breadcrumb' => $breadcrumb,
                     ];
                 }
             }
+
 
             return response()->json($results);
         } catch (\Exception $e) {
@@ -149,6 +153,27 @@ class SearchController extends Controller
             ]);
         }
     }
+
+    private function generateBreadcrumb($url)
+    {
+        $parsedUrl = parse_url($url);
+        $path = $parsedUrl['path'] ?? '';
+
+        $segments = array_filter(explode('/', $path)); // Split and remove empty parts
+
+        // Capitalize each segment
+        $breadcrumb = array_map(function ($segment) {
+            // Replace hyphens with spaces and capitalize words
+            return ucwords(str_replace('-', ' ', $segment));
+        }, $segments);
+
+        // Add "Home" at start
+        array_unshift($breadcrumb, 'Home');
+
+        // Join with " > "
+        return implode(' > ', $breadcrumb);
+    }
+
 
     /*
     * Date: 11-mar-25
