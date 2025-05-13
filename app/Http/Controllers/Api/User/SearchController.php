@@ -89,7 +89,7 @@ class SearchController extends Controller
     /*
     * Date: 11-mar-25
     * Search for data based on title.
-    * Updated on 1-apr-25
+    * Updated on 13-may-25
     * This method allows searching data from Google search api based on the following parameters:
     * - title
     *
@@ -125,16 +125,19 @@ class SearchController extends Controller
             if (!empty($googleSearchData['items'])) {
                 foreach ($googleSearchData['items'] as $item) {
                     $breadcrumb = $this->generateBreadcrumb($item['link']);
+                    $parts = explode(' > ', $breadcrumb);
+                    $shortBreadcrumb = implode(' > ', array_slice($parts, -2)); // Keep last 2 parts
 
                     $results[] = [
                         'title'      => $item['title'],
                         'link'       => $item['image']['contextLink'] ?? $item['link'],
                         'snippet'    => $item['snippet'],
                         'image'      => $item['link'],
-                        'breadcrumb' => $breadcrumb,
+                        'breadcrumb' => $shortBreadcrumb,
                     ];
                 }
             }
+
 
 
             return response()->json($results);
