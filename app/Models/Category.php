@@ -39,4 +39,9 @@ class Category extends Model
             $category->slug = Str::slug($category->title);
         });
     }
+
+    public function bookmarks()
+    {
+        return $this->hasMany(Bookmark::class);
+    }
 }

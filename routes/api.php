@@ -74,7 +74,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/delete-user', [AuthController::class, 'destroy']);
     Route::get('/listing-bookmark', [BookmarkController::class, 'ImportBookmark']);
     // Test Email Route (only authenticated users)
-
+    Route::post('/bookmarks/{bookmark}/move', [BookmarkController::class, 'move']);
 });
 Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
     $request->user()->currentAccessToken()->delete();

@@ -550,4 +550,25 @@ class BookmarkController extends Controller
             'data' => $BookmarkData
         ], 200);
     }
+
+    /**
+     * Date: 13-May-25
+     * Function: dragandDropBookmark
+     *
+     * Description:
+     * This function allows the user to move a bookmark from one category to another.
+     *
+     * @return \Illuminate\Support\Collection
+     */
+    public function move(Request $request, Bookmark $bookmark)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:categories,id',
+        ]);
+
+        $bookmark->category_id = $request->category_id;
+        $bookmark->save();
+
+        return response()->json(['message' => 'Bookmark moved successfully.']);
+    }
 }
