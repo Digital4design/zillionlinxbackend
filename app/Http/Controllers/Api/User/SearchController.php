@@ -52,7 +52,7 @@ class SearchController extends Controller
         $youtubeResults = [];
         $amazonResults = [];
 
-        if ($request->has('title')) {
+        if ($request->has('search')) {
             $googleResults = $this->searchGoogle($request->search);
             $ebayResults = $this->searchEbay($request->search);
             $youtubeResults = $this->searchYouTube($request->search);
