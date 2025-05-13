@@ -39,8 +39,8 @@ class SearchController extends Controller
     {
         $query = Bookmark::query();
 
-        if ($request->has('title')) {
-            $query->where('title', 'like', '%' . $request->title . '%');
+        if ($request->has('search')) {
+            $query->where('title', 'like', '%' . $request->search . '%');
         }
 
         $bookmarks = $query->select('website_url', 'icon_path', 'title')->get();
@@ -53,20 +53,17 @@ class SearchController extends Controller
         $amazonResults = [];
 
         if ($request->has('title')) {
-            $googleResults = $this->searchGoogle($request->title);
-            // $wikimediaResults = $this->searchWikimedia($request->title);
-            $ebayResults = $this->searchEbay($request->title);
-            $youtubeResults = $this->searchYouTube($request->title);
-            $amazonStaticLink = $this->searchAmazon($request->title);
-            // $wikiStaticLink = "https://en.wikipedia.org/wiki/Special:Search?search=" . urlencode($request->title);
-            $youtubeStaticLink = "https://www.youtube.com/results?search_query=" . urlencode($request->title);
-            $ebayStaticLink = "https://www.ebay.com/sch/i.html?_nkw=" . urlencode($request->title);
-            $walmartStaticLink = "https://www.walmart.com/search/?query=" . urlencode($request->title);
-            $aliexpressStaticLink = "https://www.aliexpress.com/wholesale?SearchText=" . urlencode($request->title);
-            $etsyStaticLink = "https://www.etsy.com/search?q=" . urlencode($request->title);
-            $neweggStaticLink = "https://www.newegg.com/p/pl?d=" . urlencode($request->title);
-            $googleImagesURL = "https://www.google.com/search?tbm=isch&q=" . urlencode($request->title);
-            // $mercadolibreStaticLink = "https://www.mercadolibre.com/jm/search?search_type=nav&item_id=&q=" . urlencode($request->title);
+            $googleResults = $this->searchGoogle($request->search);
+            $ebayResults = $this->searchEbay($request->search);
+            $youtubeResults = $this->searchYouTube($request->search);
+            $amazonStaticLink = $this->searchAmazon($request->search);
+            $youtubeStaticLink = "https://www.youtube.com/results?search_query=" . urlencode($request->search);
+            $ebayStaticLink = "https://www.ebay.com/sch/i.html?_nkw=" . urlencode($request->search);
+            $walmartStaticLink = "https://www.walmart.com/search/?query=" . urlencode($request->search);
+            $aliexpressStaticLink = "https://www.aliexpress.com/wholesale?SearchText=" . urlencode($request->search);
+            $etsyStaticLink = "https://www.etsy.com/search?q=" . urlencode($request->search);
+            $neweggStaticLink = "https://www.newegg.com/p/pl?d=" . urlencode($request->search);
+            $googleImagesURL = "https://www.google.com/search?tbm=isch&q=" . urlencode($request->search);
         }
 
         // Return a search results
@@ -75,11 +72,9 @@ class SearchController extends Controller
             'data' => [
                 'bookmarks' => $bookmarks,
                 'google_search_results' => $googleResults,
-                // 'wikimedia_search_results' => $wikimediaResults,
                 'ebay_search_results' => $ebayResults,
                 'youtube_search_results' => $youtubeResults,
                 'amazonStaticLink' => $amazonStaticLink,
-                // 'wikiStaticLink' => $wikiStaticLink,
                 'youtubeStaticLink' => $youtubeStaticLink,
                 'ebayStaticLink' => $ebayStaticLink,
                 'walmartStaticLink' => $walmartStaticLink,
@@ -87,7 +82,6 @@ class SearchController extends Controller
                 'etsyStaticLink' => $etsyStaticLink,
                 'neweggStaticLink' => $neweggStaticLink,
                 'googleImagesURL' => $googleImagesURL,
-                // 'mercadolibreStaticLink' => $mercadolibreStaticLink,
             ],
         ]);
     }
@@ -159,11 +153,9 @@ class SearchController extends Controller
         $parsedUrl = parse_url($url);
         $path = $parsedUrl['path'] ?? '';
 
-        $segments = array_filter(explode('/', $path)); // Split and remove empty parts
+        $segments = array_filter(explode('/', $path));
 
-        // Capitalize each segment
         $breadcrumb = array_map(function ($segment) {
-            // Replace hyphens with spaces and capitalize words
             return ucwords(str_replace('-', ' ', $segment));
         }, $segments);
 
@@ -174,57 +166,6 @@ class SearchController extends Controller
         return implode(' > ', $breadcrumb);
     }
 
-
-    /*
-    * Date: 11-mar-25
-    * Search for data based on title.
-    *
-    * This method allows searching data from Wikimedia api based on the following parameters:
-    * - title
-    *
-    * @param \Illuminate\Http\Request $request
-    * @return \Illuminate\Http\JsonResponse
-    */
-    // private function searchWikimedia($title)
-    // {
-    //     $client = new Client();
-    //     $encodedTitle = urlencode($title);
-
-    //     try {
-
-    //         $response = $client->get('https://en.wikipedia.org/w/api.php', [
-    //             'query' => [
-    //                 'action' => 'query',
-    //                 'format' => 'json',
-    //                 'list' => 'search',
-    //                 'srsearch' => $encodedTitle,
-    //                 'utf8' => 1,
-    //             ],
-    //         ]);
-
-    //         $wikimediaData = json_decode($response->getBody()->getContents(), true);
-
-    //         $results = [];
-    //         if (isset($wikimediaData['query']['search'])) {
-    //             foreach ($wikimediaData['query']['search'] as $item) {
-    //                 $results[] = [
-    //                     'title' => $item['title'],
-    //                     'link' => 'https://en.wikipedia.org/?curid=' . $item['pageid'],
-    //                     'snippet' => strip_tags($item['snippet']),
-    //                 ];
-    //             }
-    //         }
-
-    //         return $results;
-    //     } catch (\Exception $e) {
-
-    //         return response()->json([
-    //             'error' => 'Something went wrong',
-    //             'status' => 500,
-    //             'message' => $e->getMessage()
-    //         ]);
-    //     }
-    // }
 
     /*
     * Date: 12-mar-25
@@ -354,18 +295,7 @@ class SearchController extends Controller
     public function search_bookmark(Request $request)
     {
         try {
-            // $query = Bookmark::query();
-            // $userId = auth::id();
-            // if ($request->has('title')) {
-            //     // $query->where('user_id', $userId)->where('title', 'like', '%' . $request->title . '%');
-            //     $query->where('user_id', $userId)
-            //         ->where(function ($q) use ($request) {
-            //             $q->where('title', 'like', '%' . $request->title . '%')
-            //                 ->orWhere('website_url', 'like', '%' . $request->title . '%');
-            //         });
-            // }
 
-            // $bookmarks = $query->select('id', 'website_url', 'icon_path', 'title')->get();
             $userId = auth::id();
             $query = Bookmark::query()
                 ->select('user_bookmarks.id', 'website_url', 'icon_path', 'title')
@@ -400,7 +330,7 @@ class SearchController extends Controller
             return response()->json([
                 'success' => false,
                 'error' => 'Something went wrong while fetching bookmarks.',
-                'message' => $e->getMessage() // Optional: Remove in production for security
+                'message' => $e->getMessage()
             ], 500);
         }
     }
