@@ -531,7 +531,7 @@ class BookmarkController extends Controller
     {
         $BookmarkData = AdminBookmark::select('id', 'category', 'sub_category', 'title', 'website_url')
             ->when($request->has('search'), function ($query) use ($request) {
-                $query->where('title', 'like', '%' . $request->input('search') . '%');
+                $query->where('category', 'like', '%' . $request->input('search') . '%');
             })
             ->orderBy('created_at', 'desc')
             ->get();
