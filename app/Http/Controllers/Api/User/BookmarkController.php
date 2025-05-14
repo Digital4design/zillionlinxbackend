@@ -560,14 +560,14 @@ class BookmarkController extends Controller
      *
      * @return \Illuminate\Support\Collection
      */
-    public function move(Request $request, Bookmark $bookmark)
+    public function move(Request $request, UserBookmark $userBookmark)
     {
         $request->validate([
             'category_id' => 'required|exists:categories,id',
         ]);
 
-        $bookmark->category_id = $request->category_id;
-        $bookmark->save();
+        $userBookmark->category_id = $request->category_id;
+        $userBookmark->save();
 
         return response()->json(['message' => 'Bookmark moved successfully.']);
     }
