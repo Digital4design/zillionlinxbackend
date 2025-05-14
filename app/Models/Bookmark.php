@@ -22,9 +22,4 @@ class Bookmark extends Model
     {
         return $this->hasMany(UserBookmark::class, 'bookmark_id');
     }
-
-    public function category()
-    {
-        return $this->belongsTo(Category::class);
-    }
 }

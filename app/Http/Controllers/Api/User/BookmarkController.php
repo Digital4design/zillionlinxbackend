@@ -560,14 +560,21 @@ class BookmarkController extends Controller
      *
      * @return \Illuminate\Support\Collection
      */
-    public function move(Request $request, Bookmark $bookmark)
+    public function move(Request $request, $bookmark_id)
     {
         $request->validate([
             'category_id' => 'required|exists:categories,id',
         ]);
 
-        $bookmark->category_id = $request->category_id;
-        $bookmark->save();
+        $userBookmark = UserBookmark::where('bookmark_id', $bookmark_id)->firstOrFail();
+
+        // Optional: Check if this bookmark belongs to the current user
+        if ($userBookmark->user_id !== Auth::user()->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $userBookmark->category_id = $request->category_id;
+        $userBookmark->save();
 
         return response()->json(['message' => 'Bookmark moved successfully.']);
     }

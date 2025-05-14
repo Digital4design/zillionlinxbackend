@@ -36,4 +36,9 @@ class UserBookmark extends Model
     {
         return $this->belongsTo(Category::class, 'sub_category_id');
     }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
 }
