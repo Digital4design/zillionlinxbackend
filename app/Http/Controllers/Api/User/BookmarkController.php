@@ -574,6 +574,9 @@ class BookmarkController extends Controller
         }
 
         $userBookmark->category_id = $request->category_id;
+        if ($request->sub_category_id) {
+            $userBookmark->sub_category_id = $request->sub_category_id;
+        }
         $userBookmark->save();
 
         return response()->json(['message' => 'Bookmark moved successfully.']);
