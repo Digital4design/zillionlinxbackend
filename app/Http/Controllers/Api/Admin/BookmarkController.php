@@ -57,47 +57,53 @@ class BookmarkController extends Controller
                     return $q->where('pinned', $pinned);
                 })
                 ->orderByDesc('pinned')
-                ->orderByDesc('created_at')
-                ->paginate(10); // Ensure consistent pagination
+                ->orderByDesc('created_at');
 
-            $formattedBookmarks = $query->map(function ($userBookmark) {
+            // Get paginated results and append filters
+            $paginated = $query->paginate(10)->appends($request->only([
+                'search',
+                'category_id',
+                'sub_category_id',
+                'pinned'
+            ]));
+
+            $formattedBookmarks = $paginated->map(function ($userBookmark) {
                 return [
-                    'id'               => $userBookmark->id,
-                    'bookmark_id'      => $userBookmark->bookmark_id,
-                    'user_id'          => $userBookmark->user_id,
-                    'user_name'        => ($userBookmark->user->first_name ?? '') . ' ' . ($userBookmark->user->last_name ?? ''),
-                    'category_id'      => $userBookmark->category_id,
-                    'category_name'    => $userBookmark->category_name->title ?? null,
-                    'sub_category_id'  => $userBookmark->sub_category_id,
+                    'id'                => $userBookmark->id,
+                    'bookmark_id'       => $userBookmark->bookmark_id,
+                    'user_id'           => $userBookmark->user_id,
+                    'user_name'         => ($userBookmark->user->first_name ?? '') . ' ' . ($userBookmark->user->last_name ?? ''),
+                    'category_id'       => $userBookmark->category_id,
+                    'category_name'     => $userBookmark->category_name->title ?? null,
+                    'sub_category_id'   => $userBookmark->sub_category_id,
                     'sub_category_name' => $userBookmark->sub_category_name->title ?? null,
-                    'add_to'           => $userBookmark->add_to,
-                    'pinned'           => $userBookmark->pinned,
-                    'title'           =>  $userBookmark->bookmark->title ?? null,
-                    'position'         => $userBookmark->position,
-                    'created_at'       => $userBookmark->created_at,
-                    'updated_at'       => $userBookmark->updated_at,
-                    'website_url'      => $userBookmark->bookmark->website_url ?? null,
-                    'icon_path'        => $userBookmark->bookmark->icon_path ?? null,
+                    'add_to'            => $userBookmark->add_to,
+                    'pinned'            => $userBookmark->pinned,
+                    'title'             => $userBookmark->bookmark->title ?? null,
+                    'position'          => $userBookmark->position,
+                    'created_at'        => $userBookmark->created_at,
+                    'updated_at'        => $userBookmark->updated_at,
+                    'website_url'       => $userBookmark->bookmark->website_url ?? null,
+                    'icon_path'         => $userBookmark->bookmark->icon_path ?? null,
                 ];
             });
 
             return response()->json([
                 'status' => 'success',
-                'data'           => $formattedBookmarks,
                 'data' => [
-                    'current_page'   => $query->currentPage(),
+                    'current_page'   => $paginated->currentPage(),
                     'data'           => $formattedBookmarks,
-                    'first_page_url' => $query->url(1),
-                    'from'           => $query->firstItem(),
-                    'last_page'      => $query->lastPage(),
-                    'last_page_url'  => $query->url($query->lastPage()),
-                    'links'          => $query->toArray()['links'],
-                    'next_page_url' => $query->nextPageUrl(),
-                    'path'          => $request->url(),
-                    'per_page'      => $query->perPage(),
-                    'prev_page_url' => $query->previousPageUrl(),
-                    'to'            => $query->lastItem(),
-                    'total'         => $query->total()
+                    'first_page_url' => $paginated->url(1),
+                    'from'           => $paginated->firstItem(),
+                    'last_page'      => $paginated->lastPage(),
+                    'last_page_url'  => $paginated->url($paginated->lastPage()),
+                    'links'          => $paginated->toArray()['links'],
+                    'next_page_url'  => $paginated->nextPageUrl(),
+                    'path'           => $request->url(),
+                    'per_page'       => $paginated->perPage(),
+                    'prev_page_url'  => $paginated->previousPageUrl(),
+                    'to'             => $paginated->lastItem(),
+                    'total'          => $paginated->total()
                 ]
             ], 200);
         } catch (\Exception $e) {
@@ -107,6 +113,7 @@ class BookmarkController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Date: 27-Mar-2025
