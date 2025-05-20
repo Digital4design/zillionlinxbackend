@@ -123,14 +123,28 @@ class SearchController extends Controller
             $results = [];
 
             if (!empty($googleSearchData['items'])) {
+                // foreach ($googleSearchData['items'] as $item) {
+                //     $breadcrumb = $this->generateBreadcrumb($item['link']);
+                //     $parts = explode(' > ', $breadcrumb);
+                //     $shortBreadcrumb = implode(' > ', array_slice($parts, -2)); // Keep last 2 parts
+
+                //     $results[] = [
+                //         'title'      => $item['title'],
+                //         'link'       => $item['image']['contextLink'] ?? $item['link'],
+                //         'snippet'    => $item['snippet'],
+                //         'image'      => $item['link'],
+                //         'breadcrumb' => $shortBreadcrumb,
+                //     ];
+                // }
                 foreach ($googleSearchData['items'] as $item) {
-                    $breadcrumb = $this->generateBreadcrumb($item['link']);
+                    $contextLink = $item['image']['contextLink'] ?? $item['link'];
+                    $breadcrumb = $this->generateBreadcrumb($contextLink);
                     $parts = explode(' > ', $breadcrumb);
                     $shortBreadcrumb = implode(' > ', array_slice($parts, -2)); // Keep last 2 parts
 
                     $results[] = [
                         'title'      => $item['title'],
-                        'link'       => $item['image']['contextLink'] ?? $item['link'],
+                        'link'       => $contextLink,
                         'snippet'    => $item['snippet'],
                         'image'      => $item['link'],
                         'breadcrumb' => $shortBreadcrumb,
