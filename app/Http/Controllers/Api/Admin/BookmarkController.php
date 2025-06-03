@@ -262,7 +262,7 @@ class BookmarkController extends Controller
      */
     public function adminImportBookmark(Request $request)
     {
-        $BookmarkData = AdminBookmark::select('id', 'category', 'sub_category', 'title', 'website_url')
+        $BookmarkData = AdminBookmark::select('id', 'category', 'sub_category', 'title', 'website_url', 'created_at')
             ->when($request->has('search'), function ($query) use ($request) {
                 $query->where('title', 'like', '%' . $request->input('search') . '%');
             })
