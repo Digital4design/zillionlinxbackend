@@ -252,7 +252,7 @@ class BookmarkController extends Controller
     /**
      * Date: 8-Apr-25
      * Function: adminImportBookmark
-     *
+     * Updated: 5-June-25
      * Description:
      * Retrieves a list of admin bookmarks, selecting only the ID, title, 
      * and website URL. The bookmarks are ordered by their creation date 
@@ -263,11 +263,22 @@ class BookmarkController extends Controller
     public function adminImportBookmark(Request $request)
     {
         $BookmarkData = AdminBookmark::select('id', 'category', 'sub_category', 'title', 'website_url', 'created_at')
-            ->when($request->has('search'), function ($query) use ($request) {
-                $query->where('title', 'like', '%' . $request->input('search') . '%');
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $searchTerm = $request->input('search');
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('title', 'like', '%' . $searchTerm . '%')
+                        ->orWhere('website_url', 'like', '%' . $searchTerm . '%');
+                });
+            })
+            ->when($request->filled('category'), function ($query) use ($request) {
+                $query->where('category', $request->input('category'));
+            })
+            ->when($request->filled('sub_category'), function ($query) use ($request) {
+                $query->where('sub_category', $request->input('sub_category'));
             })
             ->orderBy('created_at', 'desc')
             ->paginate(10);
+
 
 
 
