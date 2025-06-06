@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AdminBookmark;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
@@ -247,6 +248,41 @@ class CategoryController extends Controller
             'status' => 200,
             'message' => 'Sub Category fetched successfully',
             'data' => $category
+        ], 200);
+    }
+
+    /*
+    * Date: 06-June-2025
+    * get unique category & sub cat of instant linx.
+    *
+    * @param \Illuminate\Http\Request $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function instantLinxCategories()
+    {
+        $bookmarks = AdminBookmark::all();
+
+        $groupedCategories = $bookmarks
+            ->groupBy('category')
+            ->map(function ($items, $category) {
+                return [
+                    'category' => $category,
+                    'sub_categories' => $items
+                        ->pluck('sub_category')
+                        ->filter()
+                        ->map(fn($sc) => trim($sc))
+                        ->unique()
+                        ->values()
+                ];
+            })
+            ->values(); // re-index numerically
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Instant Linx categories fetched successfully',
+            'data' => [
+                'categories' => $groupedCategories
+            ]
         ], 200);
     }
 }

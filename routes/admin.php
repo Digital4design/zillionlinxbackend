@@ -35,6 +35,7 @@ Route::prefix('admin')->middleware(['auth:sanctum', 'admin'])->group(function ()
     Route::post('/delete-admin-bookmark', [BookmarkController::class, 'deleteImportBookmark']);
     Route::post('/main/categories', [CategoryController::class, 'Category']);
     Route::post('/sub/categories', [CategoryController::class, 'subCategory']);
+    Route::get('/instant-linx-category', [CategoryController::class, 'instantLinxCategories']);
 });
 Route::middleware('auth:sanctum')->post('/logout', function (Request $request) {
     $request->user()->currentAccessToken()->delete();
