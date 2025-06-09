@@ -276,11 +276,14 @@ class BookmarkController extends Controller
             ->when($request->filled('sub_category'), function ($query) use ($request) {
                 $query->where('sub_category', $request->input('sub_category'));
             })
-            ->orderBy('created_at', 'desc')
+            ->when($request->filled('sort_by') && in_array($request->input('sort_by'), ['created_at', 'title']), function ($query) use ($request) {
+                $sortBy = $request->input('sort_by');
+                $sortOrder = $request->input('sort_order', 'desc');
+                $query->orderBy($sortBy, $sortOrder);
+            }, function ($query) {
+                $query->orderBy('created_at', 'desc');
+            })
             ->paginate(10);
-
-
-
 
         if ($BookmarkData->isEmpty()) {
             return response()->json([
