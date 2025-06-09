@@ -262,6 +262,9 @@ class BookmarkController extends Controller
      */
     public function adminImportBookmark(Request $request)
     {
+        $sortBy = $request->input('sort_by');
+        $sortOrder = $request->input('sort_order', 'desc');
+
         $BookmarkData = AdminBookmark::select('id', 'category', 'sub_category', 'title', 'website_url', 'created_at')
             ->when($request->filled('search'), function ($query) use ($request) {
                 $searchTerm = $request->input('search');
@@ -276,27 +279,33 @@ class BookmarkController extends Controller
             ->when($request->filled('sub_category'), function ($query) use ($request) {
                 $query->where('sub_category', $request->input('sub_category'));
             })
-            ->when($request->filled('sort_by') && in_array($request->input('sort_by'), ['created_at', 'title']), function ($query) use ($request) {
-                $sortBy = $request->input('sort_by');
-                $sortOrder = $request->input('sort_order', 'desc');
+            ->when(in_array($sortBy, ['created_at', 'title']), function ($query) use ($sortBy, $sortOrder) {
                 $query->orderBy($sortBy, $sortOrder);
             }, function ($query) {
                 $query->orderBy('created_at', 'desc');
             })
-            ->paginate(10);
+            ->paginate(10)
+            ->appends([
+                'search' => $request->input('search'),
+                'category' => $request->input('category'),
+                'sub_category' => $request->input('sub_category'),
+                'sort_by' => $sortBy,
+                'sort_order' => $sortOrder,
+            ]);
 
         if ($BookmarkData->isEmpty()) {
             return response()->json([
                 'status' => 200,
                 'message' => 'No bookmarks found',
                 'data' => []
-            ], 200);
+            ]);
         }
+
         return response()->json([
             'status' => 200,
             'message' => 'Bookmark retrieved successfully',
             'data' => $BookmarkData
-        ], 200);
+        ]);
     }
 
     /**
