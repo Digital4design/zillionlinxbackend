@@ -144,15 +144,15 @@ class SearchController extends Controller
 
                     $results[] = [
                         'title'      => $item['title'],
-                        'link'       => $contextLink,
-                        'snippet'    => $item['snippet'],
-                        'image'      => $item['link'],
+                        'link'       => $contextLink,                   // Website link
+                        'snippet'    => $item['snippet'] ?? '',         // Description/snippet
+                        'image'      => $item['link'],                  // Actual image URL
+                        'thumbnail'  => $item['image']['thumbnailLink'] ?? null, // Small preview
+                        'mime'       => $item['mime'] ?? null,          // Image type (jpeg/png)
                         'breadcrumb' => $shortBreadcrumb,
                     ];
                 }
             }
-
-
 
             return response()->json($results);
         } catch (\Exception $e) {
