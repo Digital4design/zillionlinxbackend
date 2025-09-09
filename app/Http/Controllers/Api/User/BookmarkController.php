@@ -66,16 +66,20 @@ class BookmarkController extends Controller
                 }
 
                 // Check if the bookmark already exists in the user's bookmarks
-                $userBookmark = Bookmark::where('website_url', $request->url)
-                    ->where('user_id', Auth::id())
-                    ->first();
+                // $userBookmark = Bookmark::where('website_url', $request->url)
+                //     ->where('user_id', Auth::id())
+                //     ->first();
 
-                if ($userBookmark) {
-                    return response()->json([
-                        'error' => 'You have already bookmarked this URL.',
-                        'message' => 'Duplicate entry: The bookmark already exists.',
-                    ], 409);
-                }
+                // if ($userBookmark) {
+                //     return response()->json([
+                //         'error' => 'You have already bookmarked this URL.',
+                //         'message' => 'Duplicate entry: The bookmark already exists.',
+                //     ], 409);
+                // }
+
+                Bookmark::where('website_url', $request->url)
+                    ->where('user_id', Auth::id())
+                    ->delete();
 
                 $bookmark = Bookmark::create([
                     'title' => $request->title,
