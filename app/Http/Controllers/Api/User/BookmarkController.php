@@ -66,20 +66,16 @@ class BookmarkController extends Controller
                 }
 
                 // Check if the bookmark already exists in the user's bookmarks
-                // $userBookmark = Bookmark::where('website_url', $request->url)
-                //     ->where('user_id', Auth::id())
-                //     ->first();
-
-                // if ($userBookmark) {
-                //     return response()->json([
-                //         'error' => 'You have already bookmarked this URL.',
-                //         'message' => 'Duplicate entry: The bookmark already exists.',
-                //     ], 409);
-                // }
-
-                Bookmark::where('website_url', $request->url)
+                $userBookmark = Bookmark::where('website_url', $request->url)
                     ->where('user_id', Auth::id())
-                    ->delete();
+                    ->first();
+
+                if ($userBookmark) {
+                    return response()->json([
+                        'error' => 'You have already bookmarked this URL.',
+                        'message' => 'Duplicate entry: The bookmark already exists.',
+                    ], 409);
+                }
 
                 $bookmark = Bookmark::create([
                     'title' => $request->title,
@@ -131,11 +127,10 @@ class BookmarkController extends Controller
                 $filePath = storage_path("app/public/{$fileName}");
                 $base64Image = Browsershot::url($request->url)
                     ->timeout(60000)
-                    ->setChromePath('/snap/chromium/current/usr/lib/chromium-browser/chrome') // ✅ explicit path
-                    ->noSandbox() // ✅ instead of setOption('args')
-                    ->userAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
+                    ->setOption('userAgent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36')
+                    ->setOption('args', ['--no-sandbox', '--disable-setuid-sandbox'])
                     ->waitUntilFirstPaint()
-                    // ->setDelay(2000)
+                    ->setDelay(2000)
                     ->setOption('headless', true)
                     ->setOption('viewport', ['width' => 1280, 'height' => 720])
                     ->base64Screenshot();
@@ -177,8 +172,6 @@ class BookmarkController extends Controller
             return response()->json(['error' => 'Screenshot failed: ' . $e->getMessage()], 500);
         }
     }
-
-
 
     /*
         * Updated: 1-apr-25
